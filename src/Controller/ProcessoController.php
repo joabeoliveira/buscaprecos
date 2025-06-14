@@ -86,7 +86,20 @@ public function exibirFormularioEdicao($request, $response, $args)
             $dados['status'],
             $id
         ]);
+    }
 
+        // NOVO MÉTODO: Apaga um processo do banco de dados
+    public function excluir($request, $response, $args)
+    {
+        $id = $args['id'];
+
+        $sql = "DELETE FROM processos WHERE id = ?";
+
+        $pdo = \getDbConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$id]);
+
+        // Redireciona para o dashboard após excluir
         return $response->withHeader('Location', '/dashboard')->withStatus(302);
     }
 }

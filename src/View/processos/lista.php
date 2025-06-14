@@ -31,9 +31,15 @@
                         <td><?= htmlspecialchars($processo['tipo_contratacao']) ?></td>
                         <td><span class="badge bg-secondary"><?= htmlspecialchars($processo['status']) ?></span></td>
                             <td>
-                                <a href="/processos/<?= $processo['id'] ?>/editar" class="btn btn-sm btn-primary">Editar</a>
-                                <a href="#" class="btn btn-sm btn-info">Ver Itens</a>
+                            <a href="/processos/<?= $processo['id'] ?>/editar" class="btn btn-sm btn-primary">Editar</a>
+                            <a href="/processos/<?= $processo['id'] ?>/itens" class="btn btn-sm btn-info">Ver Itens</a>
+
+
+                            <form action="/processos/<?= $processo['id'] ?>/excluir" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este processo? Esta ação é irreversível.');">
+                                <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                            </form>
                             </td>
+
                     </tr>
                 <?php endforeach; ?>
 
