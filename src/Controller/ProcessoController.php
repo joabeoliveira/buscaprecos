@@ -45,7 +45,9 @@ class ProcessoController
             $dados['numero_processo'],
             $dados['nome_processo'],
             $dados['tipo_contratacao'],
-            $dados['status']
+            $dados['status'],
+            $dados['agente_responsavel'], 
+            $dados['uasg']                
         ]);
 
         return $response->withHeader('Location', '/dashboard')->withStatus(302);
@@ -84,6 +86,8 @@ public function exibirFormularioEdicao($request, $response, $args)
             $dados['nome_processo'],
             $dados['tipo_contratacao'],
             $dados['status'],
+            $dados['agente_responsavel'], 
+            $dados['uasg'],
             $id
         ]);
     }

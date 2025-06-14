@@ -57,4 +57,8 @@ $app->get('/processos/{processo_id}/itens/{item_id}/pesquisar', [PrecoController
 // Rota para PROCESSAR o formulário e salvar uma nova cotação de preço
 $app->post('/processos/{processo_id}/itens/{item_id}/precos', [PrecoController::class, 'criar']);
 
+// Rota para a nossa API interna que busca no Painel de Preços
+$app->post('/api/painel-de-precos', [PrecoController::class, 'buscarPainelDePrecos']);
+// ...
+
 $app->run();

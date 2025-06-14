@@ -18,6 +18,18 @@
                 <label for="nome_processo" class="form-label">Nome do Processo</label>
                 <input type="text" class="form-control" id="nome_processo" name="nome_processo" value="<?= htmlspecialchars($processo['nome_processo']) ?>" required>
             </div>
+
+            <div class="row">
+            <div class="col-md-8 mb-3">
+                <label for="agente_responsavel" class="form-label">Agente Responsável</label>
+                <input type="text" class="form-control" id="agente_responsavel" name="agente_responsavel" value="<?= htmlspecialchars($processo['agente_responsavel'] ?? '') ?>" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="uasg" class="form-label">Código UASG</label>
+                <input type="text" class="form-control" id="uasg" name="uasg" value="<?= htmlspecialchars($processo['uasg'] ?? '') ?>" required>
+            </div>
+            </div>
+
             <div class="mb-3">
                 <label for="tipo_contratacao" class="form-label">Tipo de Contratação</label>
                 <select class="form-select" id="tipo_contratacao" name="tipo_contratacao" required>
