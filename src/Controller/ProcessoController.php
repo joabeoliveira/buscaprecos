@@ -4,14 +4,22 @@ namespace Joabe\Buscaprecos\Controller;
 
 class ProcessoController
 {
-    public function listar($request, $response, $args)
+        public function listar($request, $response, $args)
     {
         $pdo = \getDbConnection();
         $stmt = $pdo->query("SELECT * FROM processos ORDER BY data_criacao DESC");
         $processos = $stmt->fetchAll();
 
+        // Prepara as variáveis para o layout principal
+        $tituloPagina = "Lista de Processos";
+        
+        // --- A CORREÇÃO ESTÁ AQUI ---
+        // Garante que estamos apontando para a view correta da lista de PROCESSOS.
+        $paginaConteudo = __DIR__ . '/../View/processos/lista.php';
+
+        // Renderiza o layout principal, que por sua vez incluirá a nossa lista
         ob_start();
-        require __DIR__ . '/../View/processos/lista.php';
+        require __DIR__ . '/../View/layout/main.php';
         $view = ob_get_clean();
 
         $response->getBody()->write($view);
@@ -19,15 +27,19 @@ class ProcessoController
     }
 
     // --- CORREÇÃO APLICADA AQUI ---
-    public function exibirFormulario($request, $response, $args)
+        public function exibirFormulario($request, $response, $args)
     {
-        // Adicionamos a mesma lógica do método 'listar' para capturar o HTML
+        // Prepara as variáveis para o layout principal
+        $tituloPagina = "Novo Processo";
+        // Define o arquivo de conteúdo que o layout principal vai incluir
+        $paginaConteudo = __DIR__ . '/../View/processos/formulario.php';
+
+        // Renderiza o layout principal
         ob_start();
-        require __DIR__ . '/../View/processos/formulario.php';
+        require __DIR__ . '/../View/layout/main.php';
         $view = ob_get_clean();
 
         $response->getBody()->write($view);
-        // A linha que faltava: retornar o objeto de resposta
         return $response;
     }
     // --- FIM DA CORREÇÃO ---
@@ -53,7 +65,7 @@ class ProcessoController
         return $response->withHeader('Location', '/dashboard')->withStatus(302);
     }
 
-public function exibirFormularioEdicao($request, $response, $args)
+    public function exibirFormularioEdicao($request, $response, $args)
     {
         $id = $args['id'];
         $pdo = \getDbConnection();
@@ -61,9 +73,18 @@ public function exibirFormularioEdicao($request, $response, $args)
         $stmt->execute([$id]);
         $processo = $stmt->fetch();
 
+        if (!$processo) {
+            $response->getBody()->write("Processo não encontrado.");
+            return $response->withStatus(404);
+        }
+        
+        // Prepara as variáveis para o layout principal
+        $tituloPagina = "Editar Processo";
+        $paginaConteudo = __DIR__ . '/../View/processos/formulario_edicao.php';
+
+        // Renderiza o layout principal
         ob_start();
-        // Passamos a variável $processo para a view
-        require __DIR__ . '/../View/processos/formulario_edicao.php';
+        require __DIR__ . '/../View/layout/main.php';
         $view = ob_get_clean();
 
         $response->getBody()->write($view);

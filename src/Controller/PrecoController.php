@@ -19,24 +19,24 @@ class PrecoController
     $stmtItem->execute([$item_id, $processo_id]);
     $item = $stmtItem->fetch();
 
-    // --- INÍCIO DA CORREÇÃO ---
-    // Verifica se o processo e o item foram encontrados no banco de dados.
-    // A função fetch() do PDO retorna 'false' se não encontrar nada.
+    // 3. Verifica se o processo e o item foram encontrados
     if (!$processo || !$item) {
-        // Se não encontrou, retorna uma página de erro "Não Encontrado" em vez de quebrar a aplicação.
         $response->getBody()->write("Erro 404: Processo ou Item não encontrado.");
         return $response->withStatus(404);
     }
-    // --- FIM DA CORREÇÃO ---
 
-    // 3. Busca os preços que já foram coletados para este item
+    // 4. Busca os preços na tabela correta: 'precos_coletados'
     $stmtPrecos = $pdo->prepare("SELECT * FROM precos_coletados WHERE item_id = ? ORDER BY criado_em DESC");
     $stmtPrecos->execute([$item_id]);
     $precos = $stmtPrecos->fetchAll();
 
-    // Renderiza a view, passando todas as informações
+    // 5. Prepara as variáveis para o layout principal
+    $tituloPagina = "Painel de Pesquisa de Preços";
+    $paginaConteudo = __DIR__ . '/../View/precos/painel.php';
+
+    // 6. Renderiza o layout principal
     ob_start();
-    require __DIR__ . '/../View/precos/painel.php';
+    require __DIR__ . '/../View/layout/main.php';
     $view = ob_get_clean();
     
     $response->getBody()->write($view);

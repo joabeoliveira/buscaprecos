@@ -6,90 +6,107 @@ class ItemController
 {
     public function listar($request, $response, $args)
     {
-        $processo_id = $args['id'];
+        $processo_id = $args['processo_id'];
         $pdo = \getDbConnection();
 
-        // 1. Busca os dados do processo "pai" para mostrar o título da página
         $stmtProcesso = $pdo->prepare("SELECT * FROM processos WHERE id = ?");
         $stmtProcesso->execute([$processo_id]);
         $processo = $stmtProcesso->fetch();
 
-        // Se o processo não for encontrado, podemos tratar o erro depois.
+        if (!$processo) {
+            $response->getBody()->write("Processo não encontrado.");
+            return $response->withStatus(404);
+        }
 
-        // 2. Busca todos os itens que pertencem a este processo
         $stmtItens = $pdo->prepare("SELECT * FROM itens WHERE processo_id = ? ORDER BY numero_item ASC");
         $stmtItens->execute([$processo_id]);
         $itens = $stmtItens->fetchAll();
 
-        // 3. Renderiza a view, passando as variáveis $processo e $itens para ela
+        // Prepara as variáveis e chama o layout principal
+        $tituloPagina = "Itens do Processo";
+        $paginaConteudo = __DIR__ . '/../View/itens/lista.php';
+
         ob_start();
-        require __DIR__ . '/../View/itens/lista.php';
+        require __DIR__ . '/../View/layout/main.php';
         $view = ob_get_clean();
 
         $response->getBody()->write($view);
         return $response;
     }
+
 
     // NOVO MÉTODO: Salva o novo item no banco de dados
     public function criar($request, $response, $args)
 {
     $processo_id = $args['processo_id'];
     $dados = $request->getParsedBody();
-
     $pdo = \getDbConnection();
+    $redirectUrl = "/processos/{$processo_id}/itens"; // URL de redirecionamento padrão
 
-    // --- INÍCIO DA VALIDAÇÃO ANTI-DUPLICIDADE ---
-    // Ignora a verificação de duplicidade de CATMAT se ele estiver vazio
+    // Validação de duplicidade
     $catmat = !empty($dados['catmat_catser']) ? $dados['catmat_catser'] : null;
-
-    $sqlVerifica = "SELECT COUNT(*) FROM itens WHERE processo_id = ? AND (numero_item = ? OR catmat_catser = ?)";
+    $sqlVerifica = "SELECT COUNT(*) FROM itens WHERE processo_id = ? AND (numero_item = ? OR (catmat_catser IS NOT NULL AND catmat_catser != '' AND catmat_catser = ?))";
     $stmtVerifica = $pdo->prepare($sqlVerifica);
     $stmtVerifica->execute([$processo_id, $dados['numero_item'], $catmat]);
-    $count = $stmtVerifica->fetchColumn();
 
-    if ($count > 0) {
-        // Se encontrou duplicado, redireciona de volta com uma mensagem de erro
-        $redirectUrl = "/processos/{$processo_id}/itens?erro=duplicado";
+    if ($stmtVerifica->fetchColumn() > 0) {
+        // ERRO: Item duplicado. Salva a mensagem de erro e os dados do formulário na sessão.
+        $_SESSION['flash'] = [
+            'tipo' => 'danger',
+            'mensagem' => 'Erro: Já existe um item com este Número ou CATMAT.',
+            'dados_formulario' => $dados
+        ];
         return $response->withHeader('Location', $redirectUrl)->withStatus(302);
     }
-    // --- FIM DA VALIDAÇÃO ---
 
-    // Se passou na validação, continua com o INSERT
+    // Se passou na validação, executa o INSERT
     $sql = "INSERT INTO itens (processo_id, numero_item, catmat_catser, descricao, unidade_medida, quantidade) VALUES (?, ?, ?, ?, ?, ?)";
-
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        $processo_id,
-        $dados['numero_item'],
-        $catmat, // Usa a variável tratada
-        $dados['descricao'],
-        $dados['unidade_medida'],
+        $processo_id, $dados['numero_item'], $catmat,
+        $dados['descricao'], $dados['unidade_medida'],
         $dados['quantidade']
-    ]); 
-}
+    ]);
 
+    // SUCESSO: Salva a mensagem de sucesso na sessão.
+    $_SESSION['flash'] = [
+        'tipo' => 'success',
+        'mensagem' => 'Item adicionado com sucesso!'
+    ];
+
+    return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+}
     public function exibirFormularioEdicao($request, $response, $args)
     {
         $processo_id = $args['processo_id'];
-        $item_id = $args['item_id'];
-        $pdo = \getDbConnection();
+    $item_id = $args['item_id'];
+    $pdo = \getDbConnection();
 
-        // Busca o processo pai (para o título e links)
-        $stmtProcesso = $pdo->prepare("SELECT * FROM processos WHERE id = ?");
-        $stmtProcesso->execute([$processo_id]);
-        $processo = $stmtProcesso->fetch();
+    // Busca o processo pai
+    $stmtProcesso = $pdo->prepare("SELECT * FROM processos WHERE id = ?");
+    $stmtProcesso->execute([$processo_id]);
+    $processo = $stmtProcesso->fetch();
 
-        // Busca o item específico que será editado
-        $stmtItem = $pdo->prepare("SELECT * FROM itens WHERE id = ? AND processo_id = ?");
-        $stmtItem->execute([$item_id, $processo_id]);
-        $item = $stmtItem->fetch();
+    // Busca o item específico
+    $stmtItem = $pdo->prepare("SELECT * FROM itens WHERE id = ? AND processo_id = ?");
+    $stmtItem->execute([$item_id, $processo_id]);
+    $item = $stmtItem->fetch();
 
-        ob_start();
-        require __DIR__ . '/../View/itens/formulario_edicao.php';
-        $view = ob_get_clean();
+    if (!$processo || !$item) {
+        $response->getBody()->write("Processo ou item não encontrado.");
+        return $response->withStatus(404);
+    }
 
-        $response->getBody()->write($view);
-        return $response;
+    // Prepara as variáveis e chama o layout principal
+    $tituloPagina = "Editar Item";
+    $paginaConteudo = __DIR__ . '/../View/itens/formulario_edicao.php';
+
+    ob_start();
+    require __DIR__ . '/../View/layout/main.php';
+    $view = ob_get_clean();
+
+    $response->getBody()->write($view);
+    return $response;
     }
 
     // NOVO MÉTODO: Recebe os dados do formulário e atualiza o item no banco
