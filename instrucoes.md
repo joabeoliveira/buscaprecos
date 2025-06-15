@@ -317,8 +317,8 @@ Ajustes em 15/06
 correções feitas hoje
 2) correções no dos formularios
 3) inclusão do campo região nos processos ok
-4) corrigir a inclusão das cotações escolhidas no formulário de buscar no painel de preços
-5) 
+4) corrigir a inclusão das cotações escolhidas no formulário de buscar no painel de preços ok
+5) implementando a funcionalidade de pesquisa entre órgãos ok
 
 
 Ações futuras

@@ -43,4 +43,8 @@ $app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/excluir',
 
 $app->post('/api/processos/{processo_id}/itens/{item_id}/precos/lote', [PrecoController::class, 'criarLote']);
 
+//   ROTA PARA BUSCA EM ÓRGÃOS
+$app->post('/api/processos/{processo_id}/itens/{item_id}/pesquisar-orgaos', [PrecoController::class, 'pesquisarContratacoesSimilares']);
+
+
 $app->run();

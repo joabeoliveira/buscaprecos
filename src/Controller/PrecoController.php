@@ -171,4 +171,60 @@ class PrecoController
         return $response->withJson(['status' => 'success', 'message' => 'Cotações salvas com sucesso.']);
     }
 
+    /**
+     * Busca contratações similares na API de dados abertos,
+     * seja por região (automático) ou por UASGs específicas.
+     */
+    public function pesquisarContratacoesSimilares($request, $response, $args)
+    {
+        $item_id = $args['item_id'];
+        $dadosCorpo = $request->getParsedBody();
+        $uasgsSugeridas = $dadosCorpo['uasgs'] ?? [];
+
+        $pdo = \getDbConnection();
+        
+        // Busca o item e seu processo pai para obter o CATMAT e a Região
+        $stmtItem = $pdo->prepare("SELECT i.catmat_catser, p.regiao FROM itens i JOIN processos p ON i.processo_id = p.id WHERE i.id = ?");
+        $stmtItem->execute([$item_id]);
+        $itemInfo = $stmtItem->fetch();
+
+        if (!$itemInfo || empty($itemInfo['catmat_catser'])) {
+            return $response->withJson(['erro' => 'Item, CATMAT ou Região não encontrados.'], 404);
+        }
+
+        $catmat = $itemInfo['catmat_catser'];
+        $regiao = $itemInfo['regiao'];
+        
+        $client = new \GuzzleHttp\Client(['verify' => false]);
+        $resultadosFinais = ['resultado' => []];
+
+        try {
+            if (!empty($uasgsSugeridas)) {
+                // Modo 1: Busca por UASGs específicas fornecidas pelo usuário
+                foreach ($uasgsSugeridas as $uasg) {
+                    if (empty($uasg)) continue;
+                    $url = "https://dadosabertos.compras.gov.br/modulo-pesquisa-preco/1_consultarMaterial?codigoItemCatalogo={$catmat}&codigoUasg={$uasg}&dataResultado=true&tamanhoPagina=10";
+                    $apiResponse = $client->request('GET', $url);
+                    $dados = json_decode($apiResponse->getBody()->getContents(), true);
+                    if (!empty($dados['resultado'])) {
+                        $resultadosFinais['resultado'] = array_merge($resultadosFinais['resultado'], $dados['resultado']);
+                    }
+                }
+            } else {
+                // Modo 2: Busca automática pela região do processo
+                $url = "https://dadosabertos.compras.gov.br/modulo-pesquisa-preco/1_consultarMaterial?codigoItemCatalogo={$catmat}&estado={$regiao}&dataResultado=true&tamanhoPagina=20";
+                $apiResponse = $client->request('GET', $url);
+                $dados = json_decode($apiResponse->getBody()->getContents(), true);
+                if (!empty($dados['resultado'])) {
+                    $resultadosFinais['resultado'] = $dados['resultado'];
+                }
+            }
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            error_log("Erro na API de Contratos Similares: " . $e->getMessage());
+            return $response->withJson(['erro' => 'Falha ao consultar a API externa.'], 502);
+        }
+
+        return $response->withJson($resultadosFinais);
+    }
+
 }
