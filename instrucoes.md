@@ -312,3 +312,5 @@ Implemente a Lógica de Cálculo: Crie a função em PHP que recebe a cesta de p
 Desenvolva o Gerador de Relatório: Crie o script que utiliza a biblioteca de PDF para montar o documento final com os dados do banco.
 Seguindo essa estrutura, você construirá uma ferramenta poderosa e direcionada, com grandes chances de sucesso no nicho de contratações públicas.
 
+
+correções feitas hoje
