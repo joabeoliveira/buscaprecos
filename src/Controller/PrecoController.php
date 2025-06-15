@@ -127,4 +127,48 @@ class PrecoController
         return $response->withHeader('Location', $redirectUrl)->withStatus(302);
     }
 
+    /**
+     * Cria múltiplas cotações de preço de uma vez (em lote).
+     */
+    public function criarLote($request, $response, $args)
+    {
+        $item_id = $args['item_id'];
+        $precos = $request->getParsedBody(); // Recebe o array de preços do frontend
+
+        if (empty($precos) || !is_array($precos)) {
+            return $response->withJson(['status' => 'error', 'message' => 'Nenhum preço fornecido.'], 400);
+        }
+
+        $pdo = \getDbConnection();
+        
+        $sql = "INSERT INTO precos_coletados 
+                    (item_id, fonte, valor, unidade_medida, data_coleta, fornecedor_nome, fornecedor_cnpj, link_evidencia) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $stmt = $pdo->prepare($sql);
+
+        try {
+            $pdo->beginTransaction();
+            foreach ($precos as $preco) {
+                $stmt->execute([
+                    $item_id,
+                    $preco['fonte'],
+                    $preco['valor'],
+                    $preco['unidade_medida'],
+                    $preco['data_coleta'],
+                    $preco['fornecedor_nome'] ?: null,
+                    $preco['fornecedor_cnpj'] ?: null,
+                    $preco['link_evidencia'] ?: null
+                ]);
+            }
+            $pdo->commit();
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            // Em um app real, logaríamos o erro $e->getMessage()
+            return $response->withJson(['status' => 'error', 'message' => 'Falha ao salvar os preços.'], 500);
+        }
+
+        return $response->withJson(['status' => 'success', 'message' => 'Cotações salvas com sucesso.']);
+    }
+
 }

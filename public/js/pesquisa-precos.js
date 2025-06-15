@@ -12,9 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!btnBuscarPainel) return;
 
-    // Função para buscar no Painel de Preços
+    // Função para buscar no Painel de Preços (sem alterações)
     btnBuscarPainel.addEventListener('click', async () => {
-        // ... (código de loading e validação do catmat)
         loadingPainel.style.display = 'block';
         btnBuscarPainel.disabled = true;
 
@@ -27,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await response.json();
             
-            tabelaResultados.innerHTML = ''; // Limpa resultados antigos
+            tabelaResultados.innerHTML = ''; 
 
             if (data.resultado && data.resultado.length > 0) {
                 data.resultado.forEach(item => {
@@ -57,57 +56,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Função para adicionar os itens selecionados ao formulário principal
-    btnAdicionarSelecionados.addEventListener('click', () => {
+    // =======================================================
+    //   INÍCIO DA LÓGICA ATUALIZADA PARA ENVIAR EM LOTE
+    // =======================================================
+    btnAdicionarSelecionados.addEventListener('click', async () => {
         const checkboxes = document.querySelectorAll('.cota-checkbox:checked');
         if (checkboxes.length === 0) {
             alert('Por favor, selecione pelo menos uma cotação.');
             return;
         }
 
+        // 1. Coleta todos os dados em um array
+        const precosParaSalvar = [];
         checkboxes.forEach(box => {
             const itemData = JSON.parse(box.dataset.item);
-
-            // Monta a string completa da unidade para o formulário
             let unidadeCompleta = itemData.siglaUnidadeFornecimento || '';
             if (itemData.capacidadeUnidadeFornecimento > 0 && itemData.siglaUnidadeMedida) {
                 unidadeCompleta += ` c/ ${itemData.capacidadeUnidadeFornecimento} ${itemData.siglaUnidadeMedida}`;
             }
 
-            // Preenche e envia um formulário para cada item selecionado
-            preencherEEnviarFormulario(itemData, unidadeCompleta);
+            precosParaSalvar.push({
+                fonte: 'Painel de Preços',
+                valor: parseFloat(itemData.precoUnitario).toFixed(2),
+                unidade_medida: unidadeCompleta,
+                data_coleta: itemData.dataResultado.split('T')[0],
+                fornecedor_nome: itemData.nomeFornecedor,
+                fornecedor_cnpj: itemData.niFornecedor,
+                link_evidencia: null
+            });
         });
-        
-        modalResultados.hide();
-        // Recarrega a página após um pequeno delay para mostrar os novos itens na lista
-        setTimeout(() => window.location.reload(), 1000);
-    });
 
-    // Função auxiliar para criar e submeter um formulário dinamicamente
-    function preencherEEnviarFormulario(itemData, unidade) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = window.location.pathname.replace('/pesquisar', '/precos'); // Ajusta a URL de action
+        // Desabilita o botão para evitar cliques duplos
+        btnAdicionarSelecionados.disabled = true;
+        btnAdicionarSelecionados.textContent = 'Salvando...';
 
-        const campos = {
-            fonte: 'Painel de Preços',
-            valor: parseFloat(itemData.precoUnitario).toFixed(2),
-            unidade_medida: unidade,
-            data_coleta: itemData.dataResultado.split('T')[0],
-            fornecedor_nome: itemData.nomeFornecedor,
-            fornecedor_cnpj: itemData.niFornecedor,
-            link_evidencia: null // Link não vem da API, pode ser preenchido manualmente depois se necessário
-        };
+        try {
+            // 2. Envia o array para a nova API
+            const url = '/api' + window.location.pathname.replace('/pesquisar', '/precos/lote');
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(precosParaSalvar)
+            });
 
-        for (const key in campos) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = campos[key];
-            form.appendChild(input);
+            if (!response.ok) {
+                throw new Error('Falha ao salvar os dados no servidor.');
+            }
+
+            // 3. Se tudo deu certo, recarrega a página para mostrar os novos dados
+            modalResultados.hide();
+            window.location.reload();
+
+        } catch (error) {
+            console.error('Erro ao salvar em lote:', error);
+            alert('Ocorreu um erro ao salvar as cotações. Tente novamente.');
+            btnAdicionarSelecionados.disabled = false;
+            btnAdicionarSelecionados.textContent = 'Adicionar Cotações Selecionadas';
         }
-
-        document.body.appendChild(form);
-        form.submit();
-    }
+    });
 });

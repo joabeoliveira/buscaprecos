@@ -41,4 +41,6 @@ $app->post('/processos/{processo_id}/itens/{item_id}/precos', [PrecoController::
 // ROTA PARA EXCLUIR PREÇO (sem alteração)
 $app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/excluir', [PrecoController::class, 'excluir']);
 
+$app->post('/api/processos/{processo_id}/itens/{item_id}/precos/lote', [PrecoController::class, 'criarLote']);
+
 $app->run();
