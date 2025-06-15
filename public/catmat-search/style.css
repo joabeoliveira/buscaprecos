@@ -1,3 +1,4 @@
+/*
 body {
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -11,6 +12,7 @@ body {
   max-width: 800px;
   margin: 0 auto;
 }
+*/
 
 .search-container {
   background-color: white;
@@ -135,4 +137,13 @@ body {
   font-size: 2.5rem;
   color: #3498db;
   margin-bottom: 15px;
+}
+
+#modalBuscaCatmat .search-box {
+  position: sticky;
+  position: -webkit-sticky; /* Para compatibilidade com Safari */
+  top: -1rem; /* Compensa o padding do .modal-body do Bootstrap */
+  z-index: 10; /* Garante que a barra fique por cima */
+  background-color: white; /* Esconde o conteúdo que rola por trás */
+  padding-bottom: 1rem; /* Espaçamento inferior */
 }

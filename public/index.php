@@ -10,6 +10,11 @@ use Joabe\Buscaprecos\Controller\DashboardController; // <-- ADICIONADO
 
 $app = AppFactory::create();
 
+// Rota para o diretório raiz
+$app->get('/', function ($request, $response) {
+    return $response->withHeader('Location', '/dashboard')->withStatus(302);
+});
+
 // ROTA PRINCIPAL AGORA É O NOVO DASHBOARD
 $app->get('/dashboard', [DashboardController::class, 'exibir']);
 

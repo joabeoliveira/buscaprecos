@@ -130,7 +130,7 @@ if (isset($_SESSION['flash'])) {
                 <div class="input-group mb-3 search-box">
                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                     <input type="text" id="inputBuscaModal" class="form-control" placeholder="Digite o nome ou código do material..." autocomplete="off" />
-                    <button class="btn btn-outline-secondary" type="button" id="btnLimpar"><i class="fas fa-times"></i></button>
+                        <button class="btn btn-outline-secondary" type="button" id="btnLimpar"><i class="bi bi-x-lg"></i></button>
                 </div>
                 <div class="results-container">
                     <ul id="listaSugestoes" class="list-group"></ul>
