@@ -47,6 +47,10 @@
                                 <input type="number" step="0.01" class="form-control" id="valor" name="valor" required>
                             </div>
                             <div class="mb-3">
+                                <label for="unidade_medida" class="form-label">Unidade de Medida</label>
+                                <input type="text" class="form-control" id="unidade_medida" name="unidade_medida" required>
+                            </div>
+                            <div class="mb-3">
                                 <label for="data_coleta" class="form-label">Data da Coleta</label>
                                 <input type="date" class="form-control" id="data_coleta" name="data_coleta" required>
                             </div>
@@ -76,6 +80,7 @@
                             <tr>
                                 <th>Fonte</th>
                                 <th>Valor</th>
+                                <th>Unidade</th>
                                 <th>Data</th>
                                 <th>Fornecedor</th>
                                 <th>Ações</th>
@@ -92,9 +97,16 @@
                                 <tr>
                                     <td><?= htmlspecialchars($preco['fonte']) ?></td>
                                     <td>R$ <?= number_format($preco['valor'], 2, ',', '.') ?></td>
+                                    <td><?= htmlspecialchars($preco['unidade_medida'] ?? $item['unidade_medida']) ?></td>
                                     <td><?= date('d/m/Y', strtotime($preco['data_coleta'])) ?></td>
                                     <td><?= htmlspecialchars($preco['fornecedor_nome']) ?: 'N/A' ?></td>
-                                    <td></td>
+                                    <td class="text-center">
+                                        <form action="/processos/<?= $processo['id'] ?>/itens/<?= $item['id'] ?>/precos/<?= $preco['id'] ?>/excluir" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta cotação?');">
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Excluir Cotação">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -115,18 +127,24 @@
             <p>Selecione uma das cotações abaixo para preencher o formulário de adição automaticamente.</p>
             <div class="table-responsive">
                 <table class="table table-sm table-hover">
-                    <thead class="table-secondary">
+                    <<thead class="table-secondary">
                         <tr>
+                            <th style="width: 5%;"></th>
                             <th>Preço Unit.</th>
+                            <th>Unidade Fornecida</th>
+                            <th>Capacidade</th>
                             <th>Fornecedor</th>
-                            <th>Órgão Licitante (UASG)</th>
                             <th>Data</th>
-                            <th>Ação</th>
                         </tr>
                     </thead>
+
                     <tbody id="tabelaResultadosPainel">
                         </tbody>
                 </table>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="btnAdicionarSelecionados">Adicionar Cotações Selecionadas</button>
+                </div>
             </div>
           </div>
         </div>

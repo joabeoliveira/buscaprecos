@@ -38,5 +38,7 @@ $app->get('/processos/{processo_id}/itens/{item_id}/pesquisar', [PrecoController
 $app->post('/api/painel-de-precos', [PrecoController::class, 'buscarPainelDePrecos']);
 $app->post('/processos/{processo_id}/itens/{item_id}/precos', [PrecoController::class, 'criar']);
 
+// ROTA PARA EXCLUIR PREÇO (sem alteração)
+$app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/excluir', [PrecoController::class, 'excluir']);
 
 $app->run();

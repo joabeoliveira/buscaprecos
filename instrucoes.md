@@ -313,4 +313,8 @@ Desenvolva o Gerador de Relatório: Crie o script que utiliza a biblioteca de PD
 Seguindo essa estrutura, você construirá uma ferramenta poderosa e direcionada, com grandes chances de sucesso no nicho de contratações públicas.
 
 
+Ajustes em 15/06
 correções feitas hoje
+2) correções no dos formularios
+3) inclusão do campo região nos processos
+

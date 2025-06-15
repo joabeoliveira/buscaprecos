@@ -50,25 +50,26 @@ class PrecoController
     $item_id = $args['item_id'];
     $dados = $request->getParsedBody();
 
+    // Query SQL atualizada para incluir a nova coluna
     $sql = "INSERT INTO precos_coletados 
-                (item_id, fonte, valor, data_coleta, fornecedor_nome, fornecedor_cnpj, link_evidencia) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
+                (item_id, fonte, valor, unidade_medida, data_coleta, fornecedor_nome, fornecedor_cnpj, link_evidencia) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     
     $pdo = \getDbConnection();
     $stmt = $pdo->prepare($sql);
     
+    // Array de execução atualizado com o novo campo
     $stmt->execute([
         $item_id,
         $dados['fonte'],
         $dados['valor'],
+        $dados['unidade_medida'], // Novo campo adicionado
         $dados['data_coleta'],
         $dados['fornecedor_nome'] ?: null,
         $dados['fornecedor_cnpj'] ?: null,
         $dados['link_evidencia'] ?: null
     ]);
 
-    // --- A CORREÇÃO ESTÁ AQUI ---
-    // A string DEVE usar aspas duplas (") para que as variáveis {$processo_id} e {$item_id} sejam interpretadas.
     $redirectUrl = "/processos/{$processo_id}/itens/{$item_id}/pesquisar";
 
     return $response->withHeader('Location', $redirectUrl)->withStatus(302);
@@ -107,4 +108,23 @@ class PrecoController
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 }
+
+    public function excluir($request, $response, $args)
+    {
+        $processo_id = $args['processo_id'];
+        $item_id = $args['item_id'];
+        $preco_id = $args['preco_id'];
+
+        $pdo = \getDbConnection();
+        
+        // Prepara e executa a query de exclusão
+        $sql = "DELETE FROM precos_coletados WHERE id = ? AND item_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$preco_id, $item_id]);
+
+        // Redireciona o usuário de volta para a página de pesquisa
+        $redirectUrl = "/processos/{$processo_id}/itens/{$item_id}/pesquisar";
+        return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+    }
+
 }
