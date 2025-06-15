@@ -318,3 +318,9 @@ correções feitas hoje
 2) correções no dos formularios
 3) inclusão do campo região nos processos
 
+Ações futuras
+
+para configurações:
+1) colocar a opção de deixar a Região pre definida para o Estado do órgão
+2) opção de paleta de cores
+3) 

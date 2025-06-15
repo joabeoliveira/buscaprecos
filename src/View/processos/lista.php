@@ -12,6 +12,7 @@
                 <th>Nº do Processo</th>
                 <th>Nome</th>
                 <th>Agente Responsável</th>
+                <th>Região</th>
                 <th>UASG</th>
                 <th>Tipo</th>
                 <th>Status</th>
@@ -24,6 +25,7 @@
                     <td><?= htmlspecialchars($processo['numero_processo']) ?></td>
                     <td><?= htmlspecialchars($processo['nome_processo']) ?></td>
                     <td><?= htmlspecialchars($processo['agente_responsavel'] ?? 'N/A') ?></td>
+                    <td><?= htmlspecialchars($processo['regiao'] ?? 'N/A') ?></td>
                     <td><?= htmlspecialchars($processo['uasg'] ?? 'N/A') ?></td>
                     <td><?= htmlspecialchars($processo['tipo_contratacao']) ?></td>
                     <td><span class="badge bg-secondary"><?= htmlspecialchars($processo['status']) ?></span></td>
@@ -45,7 +47,7 @@
 
             <?php if (empty($processos)): ?>
                 <tr>
-                    <td colspan="7" class="text-center">Nenhum processo encontrado.</td>
+                    <td colspan="8" class="text-center">Nenhum processo encontrado.</td>
                 </tr>
             <?php endif; ?>
         </tbody>

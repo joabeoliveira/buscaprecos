@@ -49,8 +49,8 @@ class ProcessoController
     $dados = $request->getParsedBody();
 
     // **ERRO CORRIGIDO AQUI**: Faltavam as colunas 'agente_responsavel' e 'uasg'.
-    $sql = "INSERT INTO processos (numero_processo, nome_processo, tipo_contratacao, status, agente_responsavel, uasg) 
-            VALUES (?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO processos (numero_processo, nome_processo, tipo_contratacao, status, agente_responsavel, uasg, regiao) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     $pdo = \getDbConnection();
     $stmt = $pdo->prepare($sql);
@@ -62,7 +62,8 @@ class ProcessoController
         $dados['tipo_contratacao'],
         $dados['status'],
         $dados['agente_responsavel'], 
-        $dados['uasg']                
+        $dados['uasg'],          
+        $dados['regiao']
     ]);
 
     // **AJUSTE**: Redirecionar para a lista de processos é mais intuitivo que para o dashboard.
@@ -102,20 +103,21 @@ class ProcessoController
     $id = $args['id'];
     $dados = $request->getParsedBody();
 
-    // **ERRO CORRIGIDO AQUI**: A query SQL estava incompleta.
+    // Query atualizada para incluir a 'regiao'
     $sql = "UPDATE processos 
             SET numero_processo = ?, 
                 nome_processo = ?, 
                 tipo_contratacao = ?, 
                 status = ?, 
                 agente_responsavel = ?, 
-                uasg = ? 
+                uasg = ?,
+                regiao = ? 
             WHERE id = ?";
 
     $pdo = \getDbConnection();
     $stmt = $pdo->prepare($sql);
 
-    // **ERRO CORRIGIDO AQUI**: A ordem dos parâmetros e a quantidade devem corresponder à query.
+    // Array de execução atualizado
     $stmt->execute([
         $dados['numero_processo'],
         $dados['nome_processo'],
@@ -123,12 +125,13 @@ class ProcessoController
         $dados['status'],
         $dados['agente_responsavel'], 
         $dados['uasg'],
+        $dados['regiao'], // Novo campo
         $id
     ]);
 
-    // **AJUSTE ADICIONADO**: Redireciona o usuário para a lista de processos após salvar.
     return $response->withHeader('Location', '/processos')->withStatus(302);
 }
+
 
         // NOVO MÉTODO: Apaga um processo do banco de dados
     public function excluir($request, $response, $args)

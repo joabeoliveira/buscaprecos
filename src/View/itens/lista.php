@@ -78,46 +78,51 @@ if (isset($_SESSION['flash'])) {
 </div>
 
 <div class="collapse mb-4 <?= $abrirFormulario ? 'show' : '' ?>" id="formularioAdicionarItem">
-    <div class="card card-body">
-        <h4>Novo Item</h4>
-        <form action="/processos/<?= $processo['id'] ?>/itens" method="POST" class="mt-2">
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label for="numero_item" class="form-label">Nº do Item</label>
-                    <input type="number" class="form-control" id="numero_item" name="numero_item" required value="<?= htmlspecialchars($dadosFormulario['numero_item'] ?? '') ?>">
-                </div>
-                <div class="col-md-9 mb-3">
-                    <label for="catmat_input" class="form-label">Código CATMAT/CATSER</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="catmat_input" name="catmat_catser" value="<?= htmlspecialchars($dadosFormulario['catmat_catser'] ?? '') ?>">
-                        <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalBuscaCatmat">
-                            <i class="bi bi-search"></i> Buscar
-                        </button>
+    <div class="card shadow-sm border-light-subtle">
+        
+        <div class="card-header bg-light">
+            <h4 class="mb-0">Adicionar Novo Item ao Processo</h4>
+        </div>
+        
+        <div class="card-body">
+            <form action="/processos/<?= $processo['id'] ?>/itens" method="POST" class="mt-2">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <label for="numero_item" class="form-label">Nº do Item</label>
+                        <input type="number" class="form-control" id="numero_item" name="numero_item" required value="<?= htmlspecialchars($dadosFormulario['numero_item'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-9 mb-3">
+                        <label for="catmat_input" class="form-label">Código CATMAT/CATSER</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="catmat_input" name="catmat_catser" value="<?= htmlspecialchars($dadosFormulario['catmat_catser'] ?? '') ?>">
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalBuscaCatmat">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="mb-3">
-                <label for="descricao_input" class="form-label">Descrição Detalhada do Item</label>
-                <textarea class="form-control" id="descricao_input" name="descricao" rows="3" required><?= htmlspecialchars($dadosFormulario['descricao'] ?? '') ?></textarea>
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="quantidade" class="form-label">Quantidade</label>
-                    <input type="number" class="form-control" id="quantidade" name="quantidade" required value="<?= htmlspecialchars($dadosFormulario['quantidade'] ?? '') ?>">
+                <div class="mb-3">
+                    <label for="descricao_input" class="form-label">Descrição Detalhada do Item</label>
+                    <textarea class="form-control" id="descricao_input" name="descricao" rows="3" required><?= htmlspecialchars($dadosFormulario['descricao'] ?? '') ?></textarea>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="unidade_medida" class="form-label">Unidade de Medida</label>
-                    <input type="text" class="form-control" id="unidade_medida" name="unidade_medida" required value="<?= htmlspecialchars($dadosFormulario['unidade_medida'] ?? '') ?>">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="quantidade" class="form-label">Quantidade</label>
+                        <input type="number" class="form-control" id="quantidade" name="quantidade" required value="<?= htmlspecialchars($dadosFormulario['quantidade'] ?? '') ?>">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="unidade_medida" class="form-label">Unidade de Medida</label>
+                        <input type="text" class="form-control" id="unidade_medida" name="unidade_medida" required value="<?= htmlspecialchars($dadosFormulario['unidade_medida'] ?? '') ?>">
+                    </div>
                 </div>
-            </div>
-            <hr>
-            <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#formularioAdicionarItem">Cancelar</button>
-                <button type="submit" class="btn btn-success">Salvar Item</button>
-            </div>
-        </form>
+                <hr>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#formularioAdicionarItem">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Salvar Item</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
 <div class="modal fade" id="modalBuscaCatmat" tabindex="-1" aria-labelledby="modalBuscaCatmatLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
