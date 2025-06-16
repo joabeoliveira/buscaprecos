@@ -319,6 +319,7 @@ correções feitas hoje
 3) inclusão do campo região nos processos ok
 4) corrigir a inclusão das cotações escolhidas no formulário de buscar no painel de preços ok
 5) implementando a funcionalidade de pesquisa entre órgãos ok
+6) implementação da funcionalidade de pesquisa com base em sites similares e com base em notas fiscais
 
 
 Ações futuras

@@ -41,47 +41,49 @@
                 </div>
 
                 <h4>Adicionar Cotação Manualmente</h4>
-                <div class="card">
-                    <div class="card-body">
-                        <form action="/processos/<?= $processo['id'] ?>/itens/<?= $item['id'] ?>/precos" method="POST">
-                            <div class="mb-3">
-                                <label for="fonte" class="form-label">Fonte da Pesquisa</label>
-                                <select class="form-select" id="fonte" name="fonte" required>
-                                    <option value="Painel de Preços">Painel de Preços</option>
-                                    <option value="Contratação Similar">Contratação Similar (Adm. Pública)</option>
-                                    <option value="Site Especializado">Mídia / Site Especializado</option>
-                                    <option value="Pesquisa com Fornecedor">Pesquisa Direta com Fornecedor</option>
-                                    <option value="Nota Fiscal">Base de Notas Fiscais</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="valor" class="form-label">Valor (R$)</label>
-                                <input type="number" step="0.01" class="form-control" id="valor" name="valor" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="unidade_medida" class="form-label">Unidade de Medida</label>
-                                <input type="text" class="form-control" id="unidade_medida" name="unidade_medida" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="data_coleta" class="form-label">Data da Coleta</label>
-                                <input type="date" class="form-control" id="data_coleta" name="data_coleta" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="fornecedor_nome" class="form-label">Nome do Fornecedor (se aplicável)</label>
-                                <input type="text" class="form-control" id="fornecedor_nome" name="fornecedor_nome">
-                            </div>
-                             <div class="mb-3">
-                                <label for="fornecedor_cnpj" class="form-label">CNPJ do Fornecedor (se aplicável)</label>
-                                <input type="text" class="form-control" id="fornecedor_cnpj" name="fornecedor_cnpj">
-                            </div>
-                            <div class="mb-3">
-                                <label for="link_evidencia" class="form-label">Link da Evidência (se aplicável)</label>
-                                <input type="url" class="form-control" id="link_evidencia" name="link_evidencia" placeholder="https://...">
-                            </div>
-                            <button type="submit" class="btn btn-success">Salvar Cotação</button>
-                        </form>
+                    <div class="card">
+                        <div class="card-body">
+                            <form action="/processos/<?= $processo['id'] ?>/itens/<?= $item['id'] ?>/precos" method="POST" id="formCotaManual">
+                                <div class="mb-3">
+                                    <label for="fonte" class="form-label">Fonte da Pesquisa</label>
+                                    <select class="form-select" id="fonte" name="fonte" required>
+                                        <option value="Pesquisa com Fornecedor" selected>Pesquisa Direta com Fornecedor (Inc. IV)</option>
+                                        <option value="Site Especializado">Mídia / Site Especializado (Inc. III)</option>
+                                        <option value="Nota Fiscal">Base de Notas Fiscais (Inc. V)</option>
+                                        <option value="Painel de Preços">Painel de Preços (Inc. I)</option>
+                                        <option value="Contratação Similar">Contratação Similar (Inc. II)</option>
+                                    </select>
+                                </div>
+
+                                <div id="group-valor" class="mb-3">
+                                    <label for="valor" class="form-label">Valor (R$)</label>
+                                    <input type="number" step="0.01" class="form-control" id="valor" name="valor" required>
+                                </div>
+                                <div id="group-unidade" class="mb-3">
+                                    <label for="unidade_medida" class="form-label">Unidade de Medida</label>
+                                    <input type="text" class="form-control" id="unidade_medida" name="unidade_medida" required>
+                                </div>
+                                <div id="group-data" class="mb-3">
+                                    <label for="data_coleta" class="form-label">Data da Coleta / Nota Fiscal</label>
+                                    <input type="date" class="form-control" id="data_coleta" name="data_coleta" required>
+                                </div>
+                                <div id="group-fornecedor-nome" class="mb-3">
+                                    <label for="fornecedor_nome" class="form-label">Nome do Fornecedor</label>
+                                    <input type="text" class="form-control" id="fornecedor_nome" name="fornecedor_nome">
+                                </div>
+                                <div id="group-fornecedor-cnpj" class="mb-3">
+                                    <label for="fornecedor_cnpj" class="form-label">CNPJ do Fornecedor</label>
+                                    <input type="text" class="form-control" id="fornecedor_cnpj" name="fornecedor_cnpj">
+                                </div>
+                                <div id="group-link" class="mb-3">
+                                    <label for="link_evidencia" class="form-label">Link da Evidência</label>
+                                    <input type="url" class="form-control" id="link_evidencia" name="link_evidencia" placeholder="https://...">
+                                </div>
+
+                                <button type="submit" class="btn btn-success">Salvar Cotação</button>
+                            </form>
+                        </div>
                     </div>
-                </div>
             </div>
 
             <div class="col-md-7">
