@@ -321,6 +321,11 @@ correções feitas hoje
 5) implementando a funcionalidade de pesquisa entre órgãos ok
 6) implementação da funcionalidade de pesquisa com base em sites similares e com base em notas fiscais
 
+Ajuste em 16/06
+1) implementação da funcionalidade de pesquisa a fornecedores
+
+
+
 
 Ações futuras
 

@@ -1,5 +1,7 @@
 <?php
 namespace Joabe\Buscaprecos\Controller;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 class PrecoController
 {
@@ -225,6 +227,137 @@ class PrecoController
         }
 
         return $response->withJson($resultadosFinais);
+    }
+
+     
+     /**
+     * Cria uma solicitação em lote para múltiplos itens e fornecedores,
+     * e dispara um e-mail individual e com token único para cada fornecedor.
+     */
+    public function enviarSolicitacaoLote($request, $response, $args)
+    {
+        $processo_id = $args['processo_id'];
+        $dados = $request->getParsedBody();
+        $itemIds = $dados['item_ids'] ?? [];
+        $fornecedorIds = $dados['fornecedor_ids'] ?? [];
+        $prazoDias = (int)($dados['prazo_dias'] ?? 5);
+
+        if (empty($itemIds) || empty($fornecedorIds)) {
+            return $response->withJson(['status' => 'error', 'message' => 'É necessário selecionar itens e fornecedores.'], 400);
+        }
+
+        $pdo = \getDbConnection();
+
+        try {
+            $pdo->beginTransaction();
+
+            // 1. Cria o lote de solicitação principal
+            $prazoFinal = (new \DateTime())->add(new \DateInterval("P{$prazoDias}D"))->format('Y-m-d');
+            $sqlLote = "INSERT INTO lotes_solicitacao (processo_id, prazo_final) VALUES (?, ?)";
+            $stmtLote = $pdo->prepare($sqlLote);
+            $stmtLote->execute([$processo_id, $prazoFinal]);
+            $loteId = $pdo->lastInsertId();
+
+            // 2. Associa os itens ao lote
+            $sqlItem = "INSERT INTO lotes_solicitacao_itens (lote_solicitacao_id, item_id) VALUES (?, ?)";
+            $stmtItem = $pdo->prepare($sqlItem);
+            foreach ($itemIds as $itemId) {
+                $stmtItem->execute([$loteId, $itemId]);
+            }
+
+            // 3. Associa os fornecedores ao lote, gerando um token para cada um
+            $sqlFornecedor = "INSERT INTO lotes_solicitacao_fornecedores (lote_solicitacao_id, fornecedor_id, token) VALUES (?, ?, ?)";
+            $stmtFornecedor = $pdo->prepare($sqlFornecedor);
+            $tokensPorFornecedorId = [];
+            foreach ($fornecedorIds as $fornecedorId) {
+                $token = bin2hex(random_bytes(32));
+                $stmtFornecedor->execute([$loteId, $fornecedorId, $token]);
+                $tokensPorFornecedorId[$fornecedorId] = $token;
+            }
+
+            // =======================================================
+            //      INÍCIO DA LÓGICA DE ENVIO INDIVIDUAL
+            // =======================================================
+
+            // 4. Busca os dados completos dos fornecedores e dos itens para personalizar os e-mails
+            $placeholders = implode(',', array_fill(0, count($fornecedorIds), '?'));
+            $stmtDadosFornecedores = $pdo->prepare("SELECT id, razao_social, email FROM fornecedores WHERE id IN ($placeholders)");
+            $stmtDadosFornecedores->execute($fornecedorIds);
+            $listaFornecedores = $stmtDadosFornecedores->fetchAll(\PDO::FETCH_ASSOC);
+
+            $placeholdersItens = implode(',', array_fill(0, count($itemIds), '?'));
+            $stmtItensDesc = $pdo->prepare("SELECT descricao FROM itens WHERE id IN ($placeholdersItens)");
+            $stmtItensDesc->execute($itemIds);
+            $listaItensDesc = $stmtItensDesc->fetchAll(\PDO::FETCH_COLUMN);
+            $itensHtml = '<ul><li>' . implode('</li><li>', $listaItensDesc) . '</li></ul>';
+
+            $errosEnvio = [];
+
+            // 5. Loop para enviar um e-mail para cada fornecedor
+            foreach ($listaFornecedores as $fornecedor) {
+                $mail = new PHPMailer(true);
+                try {
+                    // Configurações do Servidor SMTP (como no passo anterior)
+                    $mail->isSMTP();
+                    $mail->Host       = $_ENV['MAIL_HOST'];
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = $_ENV['MAIL_USERNAME'];
+                    $mail->Password   = $_ENV['MAIL_PASSWORD'];
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = $_ENV['MAIL_PORT'];
+                    $mail->CharSet    = 'UTF-8';
+
+                    // Remetente e Destinatário INDIVIDUAL
+                    $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
+                    $mail->addAddress($fornecedor['email'], $fornecedor['razao_social']);
+
+                    // Conteúdo do e-mail
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Solicitação de Cotação de Preços';
+                    
+                    // Pega o token único deste fornecedor
+                    $tokenUnico = $tokensPorFornecedorId[$fornecedor['id']];
+                    // Cria o link de resposta com o token único
+                    $linkResposta = "http://{$_SERVER['HTTP_HOST']}/cotacao/responder?token={$tokenUnico}";
+                    
+                    $mail->Body    = "
+                        <h1>Solicitação de Cotação</h1>
+                        <p>Prezado(a) Fornecedor(a) <strong>{$fornecedor['razao_social']}</strong>,</p>
+                        <p>Estamos realizando uma pesquisa de preços para os seguintes itens:</p>
+                        {$itensHtml}
+                        <p>Para nos enviar sua proposta, por favor, acesse o seu link exclusivo abaixo. O prazo para resposta é até o dia <strong>" . date('d/m/Y', strtotime($prazoFinal)) . "</strong>.</p>
+                        <p><a href='{$linkResposta}' style='padding: 10px 15px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 5px;'>Clique Aqui para Cotar</a></p>
+                        <p>Seu link direto: {$linkResposta}</p>
+                        <p>Atenciosamente,<br>Equipe de Cotações</p>";
+                    
+                    $mail->AltBody = "Para cotar os itens, por favor, copie e cole o seguinte link no seu navegador: {$linkResposta}";
+
+                    $mail->send();
+
+                } catch (Exception $e) {
+                    $errosEnvio[] = "Não foi possível enviar para {$fornecedor['email']}. Erro: {$mail->ErrorInfo}";
+                }
+            }
+
+            // =======================================================
+            //      FIM DA LÓGICA DE ENVIO INDIVIDUAL
+            // =======================================================
+
+            if (!empty($errosEnvio)) {
+                // Mesmo com erros, a solicitação foi salva, então não damos rollback.
+                // Apenas informamos ao usuário.
+                return $response->withJson(['status' => 'warning', 'message' => 'Solicitações salvas, mas alguns e-mails não puderam ser enviados.', 'details' => $errosEnvio]);
+            }
+
+            $pdo->commit();
+
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            error_log("Erro ao enviar solicitação em lote: " . $e->getMessage());
+            return $response->withJson(['status' => 'error', 'message' => 'Falha ao processar a solicitação.'], 500);
+        }
+
+        return $response->withJson(['status' => 'success', 'message' => 'Solicitações enviadas com sucesso!']);
     }
 
 }

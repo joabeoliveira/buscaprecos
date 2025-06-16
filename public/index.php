@@ -7,6 +7,7 @@ use Joabe\Buscaprecos\Controller\ProcessoController;
 use Joabe\Buscaprecos\Controller\ItemController;
 use Joabe\Buscaprecos\Controller\PrecoController;
 use Joabe\Buscaprecos\Controller\DashboardController; // <-- ADICIONADO
+use Joabe\Buscaprecos\Controller\FornecedorController; // <-- ADICIONADO
 
 $app = AppFactory::create();
 
@@ -46,5 +47,29 @@ $app->post('/api/processos/{processo_id}/itens/{item_id}/precos/lote', [PrecoCon
 //   ROTA PARA BUSCA EM ÓRGÃOS
 $app->post('/api/processos/{processo_id}/itens/{item_id}/pesquisar-orgaos', [PrecoController::class, 'pesquisarContratacoesSimilares']);
 
+
+//         ROTAS PARA FORNECEDORES
+$app->get('/fornecedores', [FornecedorController::class, 'listar']);
+$app->get('/fornecedores/novo', [FornecedorController::class, 'exibirFormulario']);
+$app->post('/fornecedores', [FornecedorController::class, 'criar']);
+
+$app->get('/api/fornecedores', [FornecedorController::class, 'listarJson']);
+
+// API para enviar as solicitações de cotação
+$app->post('/api/processos/{processo_id}/itens/{item_id}/solicitar-cotacao', [PrecoController::class, 'enviarSolicitacoes']);
+// ===============================================
+
+// Rota para buscar os ramos de atividade únicos
+$app->get('/api/fornecedores/ramos-atividade', [FornecedorController::class, 'listarRamosAtividade']);
+// Rota para buscar fornecedores filtrando por ramo
+$app->get('/api/fornecedores/por-ramo', [FornecedorController::class, 'listarPorRamo']);
+// Rota principal para criar e enviar a solicitação em lote
+$app->post('/api/processos/{processo_id}/solicitacao-lote', [PrecoController::class, 'enviarSolicitacaoLote']);
+
+//   ROTA PÚBLICA PARA RESPOSTA DO FORNECEDOR
+// =======================================================
+$app->get('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'exibirFormulario']);
+$app->post('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'salvarResposta']);
+// =======================================================
 
 $app->run();

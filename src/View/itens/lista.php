@@ -71,7 +71,11 @@ if (isset($_SESSION['flash'])) {
 
 <hr>
 
-<div class="d-flex justify-content-end my-3">
+<div class="d-flex justify-content-end my-3 gap-2">
+    <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#modalSolicitacaoLote">
+        <i class="bi bi-envelope-paper"></i> Solicitar Cotação para Fornecedores
+    </button>
+    
     <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#formularioAdicionarItem" aria-expanded="false" aria-controls="formularioAdicionarItem">
         <i class="bi bi-plus-lg"></i> Adicionar Novo Item
     </button>
@@ -123,8 +127,7 @@ if (isset($_SESSION['flash'])) {
             </form>
         </div>
     </div>
-
-<div class="modal fade" id="modalBuscaCatmat" tabindex="-1" aria-labelledby="modalBuscaCatmatLabel" aria-hidden="true">
+</div> <div class="modal fade" id="modalBuscaCatmat" tabindex="-1" aria-labelledby="modalBuscaCatmatLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -140,6 +143,63 @@ if (isset($_SESSION['flash'])) {
                 <div class="results-container">
                     <ul id="listaSugestoes" class="list-group"></ul>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalSolicitacaoLote" tabindex="-1" aria-labelledby="modalSolicitacaoLoteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalSolicitacaoLoteLabel">Enviar Solicitação de Cotação em Lote</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4">
+                    <h6>1. Selecione os Itens para Cotar</h6>
+                    <div class="table-responsive" style="max-height: 200px;">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 5%;"><input class="form-check-input" type="checkbox" id="checkTodosItens"></th>
+                                    <th><label for="checkTodosItens" style="cursor: pointer;" class="mb-0">Selecionar Todos os Itens</label></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach($itens as $item): ?>
+                                <tr>
+                                    <td><input type="checkbox" class="form-check-input item-lote-check" value="<?= $item['id'] ?>"></td>
+                                    <td><?= htmlspecialchars($item['numero_item']) ?> - <?= htmlspecialchars($item['descricao']) ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h6>2. Selecione os Fornecedores Destinatários</h6>
+                    <div class="input-group">
+                        <label class="input-group-text" for="ramoAtividadeSelect">Filtrar por Ramo de Atividade</label>
+                        <select class="form-select" id="ramoAtividadeSelect">
+                            <option value="todos" selected>-- Carregar Todos --</option>
+                            </select>
+                    </div>
+                    <div id="listaFornecedoresLote" class="table-responsive mt-2" style="max-height: 200px;">
+                        </div>
+                </div>
+
+                <div class="mb-3">
+                    <h6>3. Defina o Prazo para Resposta</h6>
+                    <label for="prazo_dias_lote" class="form-label">Prazo (em dias)</label>
+                    <input type="number" class="form-control" id="prazo_dias_lote" value="5" min="1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div id="loadingLote" class="spinner-border text-primary me-auto" role="status" style="display: none;"></div>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnEnviarLote">Enviar Solicitações</button>
             </div>
         </div>
     </div>

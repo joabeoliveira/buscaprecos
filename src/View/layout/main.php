@@ -48,6 +48,13 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
                         <i class="bi bi-folder2-open me-2"></i> Processos
                     </a>
                 </li>
+
+                <li>
+                    <a href="/fornecedores" class="nav-link <?= str_starts_with($currentPath, '/fornecedores') ? 'active' : 'text-white' ?>">
+                        <i class="bi bi-truck me-2"></i> Fornecedores
+                    </a>
+                </li>
+
                 <li>
                     <a href="#" class="nav-link text-white">
                         <i class="bi bi-people me-2"></i> Usuários
@@ -87,5 +94,6 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <script src="/js/analise-precos.js"></script>
     <script src="/js/pesquisa-orgaos.js"></script>
     <script src="/js/formulario-dinamico.js"></script>
+    <script src="/js/solicitacao-lote.js"></script>
 </body>
 </html>
