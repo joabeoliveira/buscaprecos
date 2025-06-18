@@ -95,5 +95,6 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <script src="/js/pesquisa-orgaos.js"></script>
     <script src="/js/formulario-dinamico.js"></script>
     <script src="/js/solicitacao-lote.js"></script>
+    <script src="/js/analise-precos.js"></script>
 </body>
 </html>

@@ -322,7 +322,8 @@ correções feitas hoje
 6) implementação da funcionalidade de pesquisa com base em sites similares e com base em notas fiscais
 
 Ajuste em 16/06
-1) implementação da funcionalidade de pesquisa a fornecedores
+1) implementação da funcionalidade de pesquisa a fornecedores ok
+2) implementação da funcionalidade de cálculos para decisão
 
 
 

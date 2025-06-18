@@ -78,8 +78,13 @@ class CotacaoPublicaController
 
         $pdo = \getDbConnection();
 
-        // Busca o ID da solicitação e o ID do lote a partir do token
-        $stmtInfo = $pdo->prepare("SELECT id, lote_solicitacao_id FROM lotes_solicitacao_fornecedores WHERE token = ? AND status = 'Enviado'");
+        // Busca informações da solicitação e do fornecedor a partir do token
+        $sqlInfo = "SELECT lsf.id, lsf.fornecedor_id, f.razao_social, f.cnpj 
+                    FROM lotes_solicitacao_fornecedores lsf
+                    JOIN fornecedores f ON lsf.fornecedor_id = f.id
+                    WHERE lsf.token = ? AND lsf.status = 'Enviado'";
+        
+        $stmtInfo = $pdo->prepare($sqlInfo);
         $stmtInfo->execute([$token]);
         $solicitacaoInfo = $stmtInfo->fetch();
 
@@ -88,7 +93,6 @@ class CotacaoPublicaController
         }
         
         $solicitacaoFornecedorId = $solicitacaoInfo['id'];
-        $loteId = $solicitacaoInfo['lote_solicitacao_id'];
 
         try {
             $pdo->beginTransaction();
@@ -99,16 +103,20 @@ class CotacaoPublicaController
             $stmtStatus->execute([$solicitacaoFornecedorId]);
 
             // 2. Insere os preços cotados na tabela precos_coletados
-            $sqlPreco = "INSERT INTO precos_coletados (item_id, fonte, valor, unidade_medida, data_coleta) VALUES (?, ?, ?, ?, NOW())";
+            $sqlPreco = "INSERT INTO precos_coletados (item_id, fonte, valor, unidade_medida, data_coleta, fornecedor_nome, fornecedor_cnpj) 
+                         VALUES (?, ?, ?, ?, NOW(), ?, ?)";
             $stmtPreco = $pdo->prepare($sqlPreco);
 
             foreach ($precos as $itemId => $dadosPreco) {
+                // Salva apenas se o fornecedor tiver preenchido um valor
                 if (!empty($dadosPreco['valor'])) {
                     $stmtPreco->execute([
                         $itemId,
                         'Pesquisa com Fornecedor',
                         $dadosPreco['valor'],
-                        $dadosPreco['unidade_medida']
+                        $dadosPreco['unidade_medida'],
+                        $solicitacaoInfo['razao_social'], // Salva o nome do fornecedor
+                        $solicitacaoInfo['cnpj']          // Salva o CNPJ do fornecedor
                     ]);
                 }
             }
@@ -120,6 +128,7 @@ class CotacaoPublicaController
             return $this->exibirPaginaDeErro($response, "Ocorreu um erro interno ao salvar sua cotação. Por favor, tente novamente.");
         }
         
+        // Exibe a página de sucesso
         $paginaConteudo = __DIR__ . '/../View/publico/sucesso.php';
         ob_start();
         require __DIR__ . '/../View/layout/public.php';

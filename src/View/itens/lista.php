@@ -72,6 +72,9 @@ if (isset($_SESSION['flash'])) {
 <hr>
 
 <div class="d-flex justify-content-end my-3 gap-2">
+    <a href="/processos/<?= $processo['id'] ?>/analise" class="btn btn-warning">
+        <i class="bi bi-clipboard-data"></i> Mesa de Análise Geral
+    </a>
     <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#modalSolicitacaoLote">
         <i class="bi bi-envelope-paper"></i> Solicitar Cotação para Fornecedores
     </button>

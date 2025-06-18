@@ -360,4 +360,81 @@ class PrecoController
         return $response->withJson(['status' => 'success', 'message' => 'Solicitações enviadas com sucesso!']);
     }
 
+    public function exibirAnalise($request, $response, $args)
+    {
+        $processo_id = $args['processo_id'];
+        $item_id = $args['item_id'];
+        $pdo = \getDbConnection();
+
+        $stmtProcesso = $pdo->prepare("SELECT * FROM processos WHERE id = ?");
+        $stmtProcesso->execute([$processo_id]);
+        $processo = $stmtProcesso->fetch();
+
+        $stmtItem = $pdo->prepare("SELECT * FROM itens WHERE id = ?");
+        $stmtItem->execute([$item_id]);
+        $item = $stmtItem->fetch();
+        
+        $stmtPrecos = $pdo->prepare("SELECT * FROM precos_coletados WHERE item_id = ? ORDER BY valor ASC");
+        $stmtPrecos->execute([$item_id]);
+        $precos = $stmtPrecos->fetchAll();
+
+        // Filtra apenas os preços "considerados" para as estatísticas
+        $precosConsiderados = array_filter($precos, fn($p) => $p['status_analise'] === 'considerado');
+        
+        $estatisticas = ['total' => 0, 'minimo' => 0, 'maximo' => 0, 'media' => 0, 'mediana' => 0];
+
+        if (!empty($precosConsiderados)) {
+            $valores = array_column($precosConsiderados, 'valor');
+            sort($valores);
+            $count = count($valores);
+            
+            $estatisticas['total'] = $count;
+            $estatisticas['minimo'] = $valores[0];
+            $estatisticas['maximo'] = $valores[$count - 1];
+            $estatisticas['media'] = array_sum($valores) / $count;
+            
+            $meio = floor(($count - 1) / 2);
+            if ($count % 2) { 
+                $estatisticas['mediana'] = $valores[$meio];
+            } else { 
+                $estatisticas['mediana'] = ($valores[$meio] + $valores[$meio + 1]) / 2.0;
+            }
+        }
+        
+        $tituloPagina = "Mesa de Análise de Preços";
+        $paginaConteudo = __DIR__ . '/../View/analise/mesa.php';
+        
+        ob_start();
+        require __DIR__ . '/../View/layout/main.php';
+        $view = ob_get_clean();
+
+        $response->getBody()->write($view);
+        return $response;
+    }
+
+    public function desconsiderarPreco($request, $response, $args)
+    {
+        $dados = $request->getParsedBody();
+        $justificativa = $dados['justificativa_descarte'];
+
+        $sql = "UPDATE precos_coletados SET status_analise = 'desconsiderado', justificativa_descarte = ? WHERE id = ?";
+        $pdo = \getDbConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$justificativa, $args['preco_id']]);
+
+        $redirectUrl = "/processos/{$args['processo_id']}/analise";
+        return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+    }
+
+    public function reconsiderarPreco($request, $response, $args)
+    {
+        $sql = "UPDATE precos_coletados SET status_analise = 'considerado', justificativa_descarte = NULL WHERE id = ?";
+        $pdo = \getDbConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$args['preco_id']]);
+
+        $redirectUrl = "/processos/{$args['processo_id']}/analise";
+        return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+    }
+
 }

@@ -8,6 +8,7 @@ use Joabe\Buscaprecos\Controller\ItemController;
 use Joabe\Buscaprecos\Controller\PrecoController;
 use Joabe\Buscaprecos\Controller\DashboardController; // <-- ADICIONADO
 use Joabe\Buscaprecos\Controller\FornecedorController; // <-- ADICIONADO
+use Joabe\Buscaprecos\Controller\AnaliseController;
 
 $app = AppFactory::create();
 
@@ -71,5 +72,21 @@ $app->post('/api/processos/{processo_id}/solicitacao-lote', [PrecoController::cl
 $app->get('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'exibirFormulario']);
 $app->post('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'salvarResposta']);
 // =======================================================
+
+// ROTA DA ANÁLISE GERAL DO PROCESSO
+// ===============================================
+$app->get('/processos/{processo_id}/analise', [AnaliseController::class, 'exibirAnaliseProcesso']);
+// ===============================================
+
+// ROTAS DE CURADORIA
+// ===============================================
+$app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/desconsiderar', [PrecoController::class, 'desconsiderarPreco']);
+$app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/reconsiderar', [PrecoController::class, 'reconsiderarPreco']);
+// ===============================================
+
+// ROTA PARA SALVAR A ANÁLISE
+// ===============================================
+$app->post('/processos/{processo_id}/itens/{item_id}/salvar-analise', [AnaliseController::class, 'salvarAnaliseItem']);
+// ===============================================
 
 $app->run();
