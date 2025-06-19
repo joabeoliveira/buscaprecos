@@ -315,7 +315,7 @@ Seguindo essa estrutura, você construirá uma ferramenta poderosa e direcionada
 
 Ajustes em 15/06
 correções feitas hoje
-2) correções no dos formularios
+2) correções nos formularios
 3) inclusão do campo região nos processos ok
 4) corrigir a inclusão das cotações escolhidas no formulário de buscar no painel de preços ok
 5) implementando a funcionalidade de pesquisa entre órgãos ok
@@ -325,8 +325,25 @@ Ajuste em 16/06
 1) implementação da funcionalidade de pesquisa a fornecedores ok
 2) implementação da funcionalidade de cálculos para decisão
 
+Próximos ajustes
+1) Ajustes na funcionalidade de cálculos para decisão
+2) Revisão das funcionalidades com base na IN 65/2021
+3)  
 
 
+Ajustes em pesquisa com fornecedores
+inciso IV - pesquisa direta com, no mínimo, 3 (três) fornecedores, mediante solicitação formal de cotação, por meio de ofício ou e-mail, desde que seja apresentada justificativa da escolha desses fornecedores e que não tenham sido obtidos os orçamentos com mais de 6 (seis) meses de antecedência da data de divulgação do edital;
+
+ 2º Quando a pesquisa de preços for realizada com fornecedores, nos termos do inciso IV, deverá ser observado:
+
+I - prazo de resposta conferido ao fornecedor compatível com a complexidade do objeto a ser licitado;
+II - obtenção de propostas formais, contendo, no mínimo:
+
+a) descrição do objeto, valor unitário e total;
+b) número do Cadastro de Pessoa Física - CPF ou do Cadastro Nacional de Pessoa Jurídica - CNPJ do proponente;
+c) endereços físico e eletrônico e telefone de contato;
+d) data de emissão; e
+e) nome completo e identificação do responsável.
 
 Ações futuras
 
