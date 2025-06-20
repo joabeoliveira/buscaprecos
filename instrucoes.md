@@ -325,29 +325,56 @@ Ajuste em 16/06
 1) implementação da funcionalidade de pesquisa a fornecedores ok
 2) implementação da funcionalidade de cálculos para decisão
 
+Em 19/06
+
+1) ajustes realizados:
+
+
+
+
 Próximos ajustes
 1) Ajustes na funcionalidade de cálculos para decisão
 2) Revisão das funcionalidades com base na IN 65/2021
 3)  
 
+Correções feitas em 20/06
 
-Ajustes em pesquisa com fornecedores
-inciso IV - pesquisa direta com, no mínimo, 3 (três) fornecedores, mediante solicitação formal de cotação, por meio de ofício ou e-mail, desde que seja apresentada justificativa da escolha desses fornecedores e que não tenham sido obtidos os orçamentos com mais de 6 (seis) meses de antecedência da data de divulgação do edital;
+Correções de Regras de Negócio e Conformidade
+Implementamos validações e funcionalidades críticas para garantir que o sistema siga as regras da norma:
 
- 2º Quando a pesquisa de preços for realizada com fornecedores, nos termos do inciso IV, deverá ser observado:
+Validação de Prazos: O sistema agora valida automaticamente se as cotações manuais estão dentro dos prazos legais (6 meses ou 1 ano, dependendo da fonte) .
 
-I - prazo de resposta conferido ao fornecedor compatível com a complexidade do objeto a ser licitado;
-II - obtenção de propostas formais, contendo, no mínimo:
+Alerta de Amostra Insuficiente: A "Mesa de Análise" agora exibe um alerta e exige uma justificativa especial se o cálculo do preço for baseado em menos de três cotações.
+Trava de Segurança do Painel de Preços: Foi adicionada uma regra que impede o agente de salvar um preço estimado superior à mediana quando a análise usa apenas cotações do Painel de Preços.
 
-a) descrição do objeto, valor unitário e total;
-b) número do Cadastro de Pessoa Física - CPF ou do Cadastro Nacional de Pessoa Jurídica - CNPJ do proponente;
-c) endereços físico e eletrônico e telefone de contato;
-d) data de emissão; e
-e) nome completo e identificação do responsável.
+Justificativa e Condições Contratuais: O formulário de solicitação a fornecedores agora possui campos obrigatórios para o agente justificar a escolha dos fornecedores e detalhar as condições comerciais da compra .
+
+Registro de Propostas: O sistema agora permite que o fornecedor anexe sua proposta formal em PDF, e foi criada uma nova página de "Acompanhamento" que serve como registro formal dos fornecedores que responderam e dos que não responderam no prazo.
+
+3. Melhorias na Experiência do Fornecedor
+Focamos em tornar a página pública de cotação mais profissional, funcional e fácil de usar:
+
+Pré-preenchimento de Dados: O formulário de cotação agora busca os dados do fornecedor (Razão Social, CNPJ, Endereço, etc.) do banco de dados e os pré-preenche, permitindo que o fornecedor apenas confirme ou edite as informações.
+Informações Completas: O formulário agora exibe a quantidade de cada item a ser cotado e inclui campos para o fornecedor preencher todos os dados necessários para uma proposta formal (dados do responsável, validade da proposta, etc.).
+Cálculo Automático: O campo "Valor Total" de cada item agora é calculado automaticamente em tempo real assim que o fornecedor digita o preço unitário.
+Geração de Proposta Profissional: Substituímos a geração de PDF por uma função de impressão nativa do navegador, que se mostrou mais estável. Para isso:
+Refatoramos a lista de itens para usar uma <table>, garantindo um alinhamento perfeito.
+Aprimoramos o CSS (@media print) para que, ao imprimir (ou "Salvar como PDF"), o resultado seja um documento limpo e com aparência profissional, sem os elementos do formulário.
+Adicionamos um bloco de assinatura que é preenchido dinamicamente.
+
+
+Fornecedores 
+
+
 
 Ações futuras
+
+
+
+
 
 para configurações:
 1) colocar a opção de deixar a Região pre definida para o Estado do órgão
 2) opção de paleta de cores
 3) 
+

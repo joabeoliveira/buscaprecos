@@ -49,9 +49,16 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
                     </a>
                 </li>
 
+                
                 <li>
                     <a href="/fornecedores" class="nav-link <?= str_starts_with($currentPath, '/fornecedores') ? 'active' : 'text-white' ?>">
                         <i class="bi bi-truck me-2"></i> Fornecedores
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/acompanhamento" class="nav-link <?= str_starts_with($currentPath, '/acompanhamento') ? 'active' : 'text-white' ?>">
+                        <i class="bi bi-stopwatch me-2"></i> Acompanhamento
                     </a>
                 </li>
 

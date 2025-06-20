@@ -11,6 +11,14 @@
             <?php endif; ?>
         </div>
 
+        <?php if (isset($_SESSION['flash'])): ?>
+        <div class="alert alert-<?= htmlspecialchars($_SESSION['flash']['tipo']) ?> alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($_SESSION['flash']['mensagem']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['flash']); ?>
+        <?php endif; ?>
+
         <div class="row gx-4">
             <div class="col-md-5">
                 <div class="card border-primary mb-4">

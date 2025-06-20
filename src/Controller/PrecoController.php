@@ -6,76 +6,86 @@ use PHPMailer\PHPMailer\Exception;
 class PrecoController
 {
     public function exibirPainel($request, $response, $args)
-{
-    $processo_id = $args['processo_id'];
-    $item_id = $args['item_id'];
-    $pdo = \getDbConnection();
-
-    // 1. Busca os dados do processo "pai"
-    $stmtProcesso = $pdo->prepare("SELECT * FROM processos WHERE id = ?");
-    $stmtProcesso->execute([$processo_id]);
-    $processo = $stmtProcesso->fetch();
-
-    // 2. Busca o item específico que estamos pesquisando
-    $stmtItem = $pdo->prepare("SELECT * FROM itens WHERE id = ? AND processo_id = ?");
-    $stmtItem->execute([$item_id, $processo_id]);
-    $item = $stmtItem->fetch();
-
-    // 3. Verifica se o processo e o item foram encontrados
-    if (!$processo || !$item) {
-        $response->getBody()->write("Erro 404: Processo ou Item não encontrado.");
-        return $response->withStatus(404);
+    {
+        // ... (código do método exibirPainel - sem alterações)
+        $processo_id = $args['processo_id'];
+        $item_id = $args['item_id'];
+        $pdo = \getDbConnection();
+        $stmtProcesso = $pdo->prepare("SELECT * FROM processos WHERE id = ?");
+        $stmtProcesso->execute([$processo_id]);
+        $processo = $stmtProcesso->fetch();
+        $stmtItem = $pdo->prepare("SELECT * FROM itens WHERE id = ? AND processo_id = ?");
+        $stmtItem->execute([$item_id, $processo_id]);
+        $item = $stmtItem->fetch();
+        if (!$processo || !$item) {
+            $response->getBody()->write("Erro 404: Processo ou Item não encontrado.");
+            return $response->withStatus(404);
+        }
+        $stmtPrecos = $pdo->prepare("SELECT * FROM precos_coletados WHERE item_id = ? ORDER BY criado_em DESC");
+        $stmtPrecos->execute([$item_id]);
+        $precos = $stmtPrecos->fetchAll();
+        $tituloPagina = "Painel de Pesquisa de Preços";
+        $paginaConteudo = __DIR__ . '/../View/precos/painel.php';
+        ob_start();
+        require __DIR__ . '/../View/layout/main.php';
+        $view = ob_get_clean();
+        $response->getBody()->write($view);
+        return $response;
     }
 
-    // 4. Busca os preços na tabela correta: 'precos_coletados'
-    $stmtPrecos = $pdo->prepare("SELECT * FROM precos_coletados WHERE item_id = ? ORDER BY criado_em DESC");
-    $stmtPrecos->execute([$item_id]);
-    $precos = $stmtPrecos->fetchAll();
-
-    // 5. Prepara as variáveis para o layout principal
-    $tituloPagina = "Painel de Pesquisa de Preços";
-    $paginaConteudo = __DIR__ . '/../View/precos/painel.php';
-
-    // 6. Renderiza o layout principal
-    ob_start();
-    require __DIR__ . '/../View/layout/main.php';
-    $view = ob_get_clean();
-    
-    $response->getBody()->write($view);
-    return $response;
-}
 
     // NOVO MÉTODO: Salva uma nova cotação de preço no banco
     public function criar($request, $response, $args)
-{
-    $processo_id = $args['processo_id'];
-    $item_id = $args['item_id'];
-    $dados = $request->getParsedBody();
+    {
+        $processo_id = $args['processo_id'];
+        $item_id = $args['item_id'];
+        $dados = $request->getParsedBody();
+        $redirectUrl = "/processos/{$processo_id}/itens/{$item_id}/pesquisar";
 
-    // Query SQL atualizada para incluir a nova coluna
-    $sql = "INSERT INTO precos_coletados 
-                (item_id, fonte, valor, unidade_medida, data_coleta, fornecedor_nome, fornecedor_cnpj, link_evidencia) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-    
-    $pdo = \getDbConnection();
-    $stmt = $pdo->prepare($sql);
-    
-    // Array de execução atualizado com o novo campo
-    $stmt->execute([
-        $item_id,
-        $dados['fonte'],
-        $dados['valor'],
-        $dados['unidade_medida'], // Novo campo adicionado
-        $dados['data_coleta'],
-        $dados['fornecedor_nome'] ?: null,
-        $dados['fornecedor_cnpj'] ?: null,
-        $dados['link_evidencia'] ?: null
-    ]);
+        if (empty($dados['data_coleta'])) {
+            $_SESSION['flash'] = ['tipo' => 'danger', 'mensagem' => 'Erro: A data da coleta é obrigatória.'];
+            return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+        }
 
-    $redirectUrl = "/processos/{$processo_id}/itens/{$item_id}/pesquisar";
+        $fonte = $dados['fonte'];
+        $dataColeta = new \DateTime($dados['data_coleta']);
+        $dataAtual = new \DateTime();
+        
+        if ($dataColeta > $dataAtual) {
+            $_SESSION['flash'] = ['tipo' => 'danger', 'mensagem' => 'Erro: A data da coleta não pode ser no futuro.'];
+            return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+        }
 
-    return $response->withHeader('Location', $redirectUrl)->withStatus(302);
-}
+        $intervalo = $dataAtual->diff($dataColeta);
+        $mesesDiferenca = $intervalo->y * 12 + $intervalo->m;
+        $erroPrazo = null;
+
+        if (($fonte === 'Site Especializado' || $fonte === 'Pesquisa com Fornecedor') && $mesesDiferenca >= 6) {
+            $erroPrazo = 'Erro de Validação: Para "Site Especializado" ou "Pesquisa com Fornecedor", a data não pode ser superior a 6 meses.';
+        }
+
+        if (($fonte === 'Contratação Similar' || $fonte === 'Nota Fiscal') && $mesesDiferenca >= 12) {
+            $erroPrazo = 'Erro de Validação: Para "Contratação Similar" ou "Nota Fiscal", a data não pode ser superior a 1 ano.';
+        }
+
+        if ($erroPrazo) {
+            $_SESSION['flash'] = ['tipo' => 'danger', 'mensagem' => $erroPrazo];
+            return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+        }
+
+        $sql = "INSERT INTO precos_coletados (item_id, fonte, valor, unidade_medida, data_coleta, fornecedor_nome, fornecedor_cnpj, link_evidencia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        $pdo = \getDbConnection();
+        $stmt = $pdo->prepare($sql);
+        
+        $stmt->execute([
+            $item_id, $dados['fonte'], $dados['valor'], $dados['unidade_medida'],
+            $dados['data_coleta'], $dados['fornecedor_nome'] ?: null, $dados['fornecedor_cnpj'] ?: null, $dados['link_evidencia'] ?: null
+        ]);
+
+        $_SESSION['flash'] = ['tipo' => 'success', 'mensagem' => 'Cotação manual adicionada com sucesso!'];
+        return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+    }
 
     public function buscarPainelDePrecos($request, $response, $args)
 {
@@ -236,14 +246,36 @@ class PrecoController
      */
     public function enviarSolicitacaoLote($request, $response, $args)
     {
+
+
+
         $processo_id = $args['processo_id'];
         $dados = $request->getParsedBody();
+
+        // =======================================================
+    //          INÍCIO DO CÓDIGO DE DEPURAÇÃO (TEMPORÁRIO)
+    // =======================================================
+    $log_message = "Timestamp: " . date("Y-m-d H:i:s") . "\n";
+    $log_message .= "Dados Recebidos: " . print_r($dados, true) . "\n---\n";
+    file_put_contents(__DIR__ . '/../../debug.log', $log_message, FILE_APPEND);
+    // =======================================================
+    //                  FIM DO CÓDIGO DE DEPURAÇÃO
+    // =======================================================
+
+    $processo_id = $args['processo_id'];
+    $itemIds = $dados['item_ids'] ?? [];
+    $fornecedorIds = $dados['fornecedor_ids'] ?? [];
+
+    
+
         $itemIds = $dados['item_ids'] ?? [];
         $fornecedorIds = $dados['fornecedor_ids'] ?? [];
         $prazoDias = (int)($dados['prazo_dias'] ?? 5);
+        $condicoesContratuais = $dados['condicoes_contratuais'] ?? '';
+        $justificativaFornecedores = $dados['justificativa_fornecedores'] ?? '';
 
-        if (empty($itemIds) || empty($fornecedorIds)) {
-            return $response->withJson(['status' => 'error', 'message' => 'É necessário selecionar itens e fornecedores.'], 400);
+        if (empty($itemIds) || empty($fornecedorIds) || empty($justificativaFornecedores)) {
+            return $response->withJson(['status' => 'error', 'message' => 'É necessário selecionar itens, fornecedores e preencher a justificativa.'], 400);
         }
 
         $pdo = \getDbConnection();
@@ -251,21 +283,18 @@ class PrecoController
         try {
             $pdo->beginTransaction();
 
-            // 1. Cria o lote de solicitação principal
             $prazoFinal = (new \DateTime())->add(new \DateInterval("P{$prazoDias}D"))->format('Y-m-d');
-            $sqlLote = "INSERT INTO lotes_solicitacao (processo_id, prazo_final) VALUES (?, ?)";
+            $sqlLote = "INSERT INTO lotes_solicitacao (processo_id, prazo_final, justificativa_fornecedores, condicoes_contratuais) VALUES (?, ?, ?, ?)";
             $stmtLote = $pdo->prepare($sqlLote);
-            $stmtLote->execute([$processo_id, $prazoFinal]);
+            $stmtLote->execute([$processo_id, $prazoFinal, $justificativaFornecedores, $condicoesContratuais]);
             $loteId = $pdo->lastInsertId();
 
-            // 2. Associa os itens ao lote
             $sqlItem = "INSERT INTO lotes_solicitacao_itens (lote_solicitacao_id, item_id) VALUES (?, ?)";
             $stmtItem = $pdo->prepare($sqlItem);
             foreach ($itemIds as $itemId) {
                 $stmtItem->execute([$loteId, $itemId]);
             }
 
-            // 3. Associa os fornecedores ao lote, gerando um token para cada um
             $sqlFornecedor = "INSERT INTO lotes_solicitacao_fornecedores (lote_solicitacao_id, fornecedor_id, token) VALUES (?, ?, ?)";
             $stmtFornecedor = $pdo->prepare($sqlFornecedor);
             $tokensPorFornecedorId = [];
@@ -275,29 +304,17 @@ class PrecoController
                 $tokensPorFornecedorId[$fornecedorId] = $token;
             }
 
-            // =======================================================
-            //      INÍCIO DA LÓGICA DE ENVIO INDIVIDUAL
-            // =======================================================
-
-            // 4. Busca os dados completos dos fornecedores e dos itens para personalizar os e-mails
-            $placeholders = implode(',', array_fill(0, count($fornecedorIds), '?'));
-            $stmtDadosFornecedores = $pdo->prepare("SELECT id, razao_social, email FROM fornecedores WHERE id IN ($placeholders)");
-            $stmtDadosFornecedores->execute($fornecedorIds);
-            $listaFornecedores = $stmtDadosFornecedores->fetchAll(\PDO::FETCH_ASSOC);
-
-            $placeholdersItens = implode(',', array_fill(0, count($itemIds), '?'));
-            $stmtItensDesc = $pdo->prepare("SELECT descricao FROM itens WHERE id IN ($placeholdersItens)");
-            $stmtItensDesc->execute($itemIds);
-            $listaItensDesc = $stmtItensDesc->fetchAll(\PDO::FETCH_COLUMN);
-            $itensHtml = '<ul><li>' . implode('</li><li>', $listaItensDesc) . '</li></ul>';
-
+            $listaFornecedores = $this->getDadosFornecedores($pdo, $fornecedorIds);
+            $itensHtml = $this->getItensHtml($pdo, $itemIds);
             $errosEnvio = [];
+            $blocoCondicoes = '';
+            if (!empty($condicoesContratuais)) {
+                $blocoCondicoes = "<hr><p><strong>Condições da Contratação:</strong></p><p style=\"white-space: pre-wrap;\">" . htmlspecialchars($condicoesContratuais) . "</p><hr>";
+            }
 
-            // 5. Loop para enviar um e-mail para cada fornecedor
             foreach ($listaFornecedores as $fornecedor) {
                 $mail = new PHPMailer(true);
                 try {
-                    // Configurações do Servidor SMTP (como no passo anterior)
                     $mail->isSMTP();
                     $mail->Host       = $_ENV['MAIL_HOST'];
                     $mail->SMTPAuth   = true;
@@ -306,58 +323,49 @@ class PrecoController
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = $_ENV['MAIL_PORT'];
                     $mail->CharSet    = 'UTF-8';
-
-                    // Remetente e Destinatário INDIVIDUAL
                     $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
                     $mail->addAddress($fornecedor['email'], $fornecedor['razao_social']);
-
-                    // Conteúdo do e-mail
                     $mail->isHTML(true);
                     $mail->Subject = 'Solicitação de Cotação de Preços';
-                    
-                    // Pega o token único deste fornecedor
                     $tokenUnico = $tokensPorFornecedorId[$fornecedor['id']];
-                    // Cria o link de resposta com o token único
                     $linkResposta = "http://{$_SERVER['HTTP_HOST']}/cotacao/responder?token={$tokenUnico}";
-                    
-                    $mail->Body    = "
-                        <h1>Solicitação de Cotação</h1>
-                        <p>Prezado(a) Fornecedor(a) <strong>{$fornecedor['razao_social']}</strong>,</p>
-                        <p>Estamos realizando uma pesquisa de preços para os seguintes itens:</p>
-                        {$itensHtml}
-                        <p>Para nos enviar sua proposta, por favor, acesse o seu link exclusivo abaixo. O prazo para resposta é até o dia <strong>" . date('d/m/Y', strtotime($prazoFinal)) . "</strong>.</p>
-                        <p><a href='{$linkResposta}' style='padding: 10px 15px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 5px;'>Clique Aqui para Cotar</a></p>
-                        <p>Seu link direto: {$linkResposta}</p>
-                        <p>Atenciosamente,<br>Equipe de Cotações</p>";
-                    
+                    $mail->Body = "<h1>Solicitação de Cotação</h1><p>Prezado(a) Fornecedor(a) <strong>" . htmlspecialchars($fornecedor['razao_social']) . "</strong>,</p><p>Estamos realizando uma pesquisa de preços para os seguintes itens:</p>{$itensHtml}{$blocoCondicoes}<p>Para nos enviar sua proposta, por favor, acesse o seu link exclusivo abaixo. O prazo para resposta é até o dia <strong>" . date('d/m/Y', strtotime($prazoFinal)) . "</strong>.</p><p style=\"text-align:center; margin: 20px 0;\"><a href='{$linkResposta}' style='padding: 12px 20px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 5px; font-size: 16px;'>Clique Aqui para Cotar</a></p><p>Se não for possível clicar no botão, copie e cole o link a seguir no seu navegador: {$linkResposta}</p><p>Atenciosamente,<br>Equipe de Cotações</p>";
                     $mail->AltBody = "Para cotar os itens, por favor, copie e cole o seguinte link no seu navegador: {$linkResposta}";
-
                     $mail->send();
-
                 } catch (Exception $e) {
                     $errosEnvio[] = "Não foi possível enviar para {$fornecedor['email']}. Erro: {$mail->ErrorInfo}";
                 }
             }
 
-            // =======================================================
-            //      FIM DA LÓGICA DE ENVIO INDIVIDUAL
-            // =======================================================
-
             if (!empty($errosEnvio)) {
-                // Mesmo com erros, a solicitação foi salva, então não damos rollback.
-                // Apenas informamos ao usuário.
                 return $response->withJson(['status' => 'warning', 'message' => 'Solicitações salvas, mas alguns e-mails não puderam ser enviados.', 'details' => $errosEnvio]);
             }
-
             $pdo->commit();
-
         } catch (\Exception $e) {
             $pdo->rollBack();
             error_log("Erro ao enviar solicitação em lote: " . $e->getMessage());
-            return $response->withJson(['status' => 'error', 'message' => 'Falha ao processar a solicitação.'], 500);
+            return $response->withJson(['status' => 'error', 'message' => 'Falha ao processar a solicitação. Detalhe: ' . $e->getMessage()], 500);
         }
 
         return $response->withJson(['status' => 'success', 'message' => 'Solicitações enviadas com sucesso!']);
+    }
+
+// Adicione estes dois métodos auxiliares dentro da classe PrecoController para manter o código organizado
+private function getDadosFornecedores(\PDO $pdo, array $fornecedorIds): array
+    {
+        $placeholders = implode(',', array_fill(0, count($fornecedorIds), '?'));
+        $stmt = $pdo->prepare("SELECT id, razao_social, email FROM fornecedores WHERE id IN ($placeholders)");
+        $stmt->execute($fornecedorIds);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+private function getItensHtml(\PDO $pdo, array $itemIds): string
+    {
+        $placeholders = implode(',', array_fill(0, count($itemIds), '?'));
+        $stmt = $pdo->prepare("SELECT descricao FROM itens WHERE id IN ($placeholders)");
+        $stmt->execute($itemIds);
+        $listaItensDesc = $stmt->fetchAll(\PDO::FETCH_COLUMN);
+        return '<ul><li>' . implode('</li><li>', array_map('htmlspecialchars', $listaItensDesc)) . '</li></ul>';
     }
 
     public function exibirAnalise($request, $response, $args)

@@ -38,19 +38,20 @@ class FornecedorController
     {
         $dados = $request->getParsedBody();
         
-        $sql = "INSERT INTO fornecedores (razao_social, cnpj, email, telefone, ramo_atividade) VALUES (?, ?, ?, ?, ?)";
-        
-        $pdo = \getDbConnection();
-        $stmt = $pdo->prepare($sql);
-        
-        try {
-            $stmt->execute([
-                $dados['razao_social'],
-                $dados['cnpj'],
-                $dados['email'],
-                $dados['telefone'] ?? null,
-                $dados['ramo_atividade'] ?? null
-            ]);
+        $sql = "INSERT INTO fornecedores (razao_social, cnpj, email, endereco, telefone, ramo_atividade) VALUES (?, ?, ?, ?, ?, ?)";
+    
+    $pdo = \getDbConnection();
+    $stmt = $pdo->prepare($sql);
+    
+    try {
+        $stmt->execute([
+            $dados['razao_social'],
+            $dados['cnpj'],
+            $dados['email'],
+            $dados['endereco'] ?? null, // Salva o novo campo de endereço
+            $dados['telefone'] ?? null,
+            $dados['ramo_atividade'] ?? null
+        ]);
         } catch (\PDOException $e) {
             // Tratar erro de CNPJ duplicado
             if ($e->getCode() == 23000) { 

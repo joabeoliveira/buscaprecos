@@ -1,0 +1,119 @@
+Timestamp: 2025-06-19 20:31:50
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 16
+            [1] => 17
+            [2] => 18
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+            [1] => 2
+        )
+
+    [prazo_dias] => 5
+)
+
+---
+Timestamp: 2025-06-19 20:36:28
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 16
+            [1] => 17
+            [2] => 18
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+            [1] => 2
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => ENTREGA EM 15 DIAS
+    [justificativa_fornecedores] => ATUAM NO MERCADO
+)
+
+---
+Timestamp: 2025-06-19 21:13:36
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 19
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+            [1] => 2
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => ENTREGA EM 15 
+    [justificativa_fornecedores] => ATUA NO MERCADO
+)
+
+---
+Timestamp: 2025-06-19 21:51:10
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 19
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 3
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => entrega em 15 dias
+    [justificativa_fornecedores] => Atua no mercado
+)
+
+---
+Timestamp: 2025-06-19 22:06:43
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 19
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 3
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => 15 dias
+    [justificativa_fornecedores] => Entregar lá
+)
+
+---
+Timestamp: 2025-06-20 21:30:43
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 19
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 2
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => quinze dias para entrega
+    [justificativa_fornecedores] => atuam no mercado
+)
+
+---

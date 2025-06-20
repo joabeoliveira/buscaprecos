@@ -7,10 +7,19 @@
         </div>
     </div>
     
+    <?php if (isset($_SESSION['flash'])): ?>
+        <div class="alert alert-<?= htmlspecialchars($_SESSION['flash']['tipo']) ?> alert-dismissible fade show" role="alert">
+            <?= htmlspecialchars($_SESSION['flash']['mensagem']) ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['flash']); ?>
+    <?php endif; ?>
+
     <?php foreach($itensComAnalise as $analise): 
         $item = $analise['item'];
         $precos = $analise['precos'];
         $estatisticas = $analise['estatisticas'];
+        $alertaAmostra = $analise['alerta_amostra'] ?? false; // Pega a flag do controller
     ?>
     <div class="card mb-5 shadow-sm">
         <div class="card-header bg-light">
@@ -92,10 +101,24 @@
                 </table>
             </div>
 
-            <hr class="my-4">
-            <div class="p-3 bg-light border rounded">
-                <h5 class="mb-3">Definição do Preço Estimado para o Item</h5>
-                <form action="/processos/<?= $processo['id'] ?>/itens/<?= $item['id'] ?>/salvar-analise" method="POST">
+            <form action="/processos/<?= $processo['id'] ?>/itens/<?= $item['id'] ?>/salvar-analise" method="POST">
+                
+                <?php if ($alertaAmostra): ?>
+                    <div class="alert alert-warning mt-4" role="alert">
+                      <h4 class="alert-heading">Atenção: Amostra de Preços Insuficiente!</h4>
+                      <p>
+                          Conforme o Art. 6º, § 5º da IN 65/2021, a definição do preço estimado com base em menos de 3 (três) preços é uma situação excepcional.
+                      </p>
+                      <hr>
+                      <div class="mb-0">
+                        <label for="justificativa_excepcionalidade_<?= $item['id'] ?>" class="form-label"><strong>É obrigatório justificar a excepcionalidade da amostra:</strong></label>
+                        <textarea name="justificativa_excepcionalidade" id="justificativa_excepcionalidade_<?= $item['id'] ?>" class="form-control" rows="3" required><?= htmlspecialchars($item['justificativa_excepcionalidade'] ?? '') ?></textarea>
+                      </div>
+                    </div>
+                <?php endif; ?>
+                <hr class="my-4">
+                <div class="p-3 bg-light border rounded">
+                    <h5 class="mb-3">Definição do Preço Estimado para o Item</h5>
                     <div class="row">
                         <div class="col-md-7">
                             <label class="form-label"><strong>Escolha a Metodologia:</strong></label>
@@ -135,9 +158,8 @@
                     <div class="text-end mt-3">
                         <button type="submit" class="btn btn-primary">Salvar Análise do Item</button>
                     </div>
-                </form>
-            </div>
-
+                </div>
+            </form>
         </div>
     </div>
     <?php endforeach; ?>

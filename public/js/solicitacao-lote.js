@@ -110,9 +110,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const itemIds = Array.from(itemCheckboxes).map(cb => cb.value);
         const fornecedorIds = Array.from(fornecedorCheckboxes).map(cb => cb.value);
+        
+        // =======================================================
+        //          INÍCIO DA CORREÇÃO: LER NOVOS CAMPOS
+        // =======================================================
         const prazoDias = document.getElementById('prazo_dias_lote').value;
+        const condicoesContratuais = document.getElementById('condicoes_contratuais_lote').value;
+        const justificativaFornecedores = document.getElementById('justificativa_fornecedores_lote').value;
 
-        const pathParts = window.location.pathname.split('/'); // Ex: ["", "processos", "1", "itens"]
+        // Adiciona uma validação no frontend para evitar requisições desnecessárias
+        if (!justificativaFornecedores.trim()) {
+            alert('A justificativa da escolha dos fornecedores é obrigatória.');
+            return;
+        }
+        // =======================================================
+        //                      FIM DA CORREÇÃO
+        // =======================================================
+
+        const pathParts = window.location.pathname.split('/');
         const processoId = pathParts[2];
         const url = `/api/processos/${processoId}/solicitacao-lote`;
 
@@ -123,18 +138,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                // =======================================================
+                //     INÍCIO DA CORREÇÃO: ENVIAR DADOS COMPLETOS
+                // =======================================================
                 body: JSON.stringify({
                     item_ids: itemIds,
                     fornecedor_ids: fornecedorIds,
-                    prazo_dias: prazoDias
+                    prazo_dias: prazoDias,
+                    condicoes_contratuais: condicoesContratuais,
+                    justificativa_fornecedores: justificativaFornecedores
                 })
+                // =======================================================
+                //                    FIM DA CORREÇÃO
+                // =======================================================
             });
 
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || 'Erro no servidor');
 
             alert(result.message);
-            bootstrap.Modal.getInstance(modalElement).hide();
+            // Recarrega a página para limpar o formulário e refletir as mudanças.
+            window.location.reload();
 
         } catch (error) {
             alert('Erro: ' + error.message);
@@ -143,4 +167,5 @@ document.addEventListener('DOMContentLoaded', () => {
             btnEnviarLote.disabled = false;
         }
     });
+
 });

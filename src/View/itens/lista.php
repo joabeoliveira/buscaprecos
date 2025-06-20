@@ -192,12 +192,28 @@ if (isset($_SESSION['flash'])) {
                     <div id="listaFornecedoresLote" class="table-responsive mt-2" style="max-height: 200px;">
                         </div>
                 </div>
+                
+                <div class="mb-4">
+                    <h6>3. Detalhe as Condições e Justificativas</h6>
+                    <div class="mb-3">
+                        <label for="condicoes_contratuais_lote" class="form-label">Condições da Contratação (Art. 4º)</label>
+                        <textarea class="form-control" id="condicoes_contratuais_lote" rows="3" placeholder="Ex: Prazo de entrega de 15 dias, garantia de 12 meses, local de entrega..."></textarea>
+                        <div class="form-text">Esta informação será incluída no e-mail enviado aos fornecedores.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="justificativa_fornecedores_lote" class="form-label">Justificativa da Escolha dos Fornecedores (Art. 3º, VIII)</label>
+                        <textarea class="form-control" id="justificativa_fornecedores_lote" rows="3" placeholder="Justifique por que os fornecedores selecionados são adequados para esta cotação..."></textarea>
+                    </div>
+                </div>
 
+                
                 <div class="mb-3">
-                    <h6>3. Defina o Prazo para Resposta</h6>
+                    <h6>4. Defina o Prazo para Resposta</h6>
                     <label for="prazo_dias_lote" class="form-label">Prazo (em dias)</label>
                     <input type="number" class="form-control" id="prazo_dias_lote" value="5" min="1">
                 </div>
+
+
             </div>
             <div class="modal-footer">
                 <div id="loadingLote" class="spinner-border text-primary me-auto" role="status" style="display: none;"></div>

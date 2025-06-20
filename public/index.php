@@ -9,8 +9,11 @@ use Joabe\Buscaprecos\Controller\PrecoController;
 use Joabe\Buscaprecos\Controller\DashboardController; // <-- ADICIONADO
 use Joabe\Buscaprecos\Controller\FornecedorController; // <-- ADICIONADO
 use Joabe\Buscaprecos\Controller\AnaliseController;
+use Joabe\Buscaprecos\Controller\AcompanhamentoController;
 
 $app = AppFactory::create();
+
+$app->addBodyParsingMiddleware();
 
 // Rota para o diretório raiz
 $app->get('/', function ($request, $response) {
@@ -88,5 +91,24 @@ $app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/reconside
 // ===============================================
 $app->post('/processos/{processo_id}/itens/{item_id}/salvar-analise', [AnaliseController::class, 'salvarAnaliseItem']);
 // ===============================================
+
+// ROTA PARA A NOVA PÁGINA DE ACOMPANHAMENTO
+$app->get('/acompanhamento', [AcompanhamentoController::class, 'exibir']);
+
+// ROTA PARA DOWNLOAD DO ANEXO (coloque perto das outras rotas)
+$app->get('/download-proposta/{nome_arquivo}', function ($request, $response, $args) {
+    $nomeArquivo = $args['nome_arquivo'];
+    $caminhoCompleto = __DIR__ . '/../storage/propostas/' . $nomeArquivo;
+
+    if (!file_exists($caminhoCompleto) || !preg_match('/^[a-f0-9]+\.pdf$/', $nomeArquivo)) {
+        $response->getBody()->write('Arquivo não encontrado ou inválido.');
+        return $response->withStatus(404);
+    }
+
+    $response = $response->withHeader('Content-Type', 'application/pdf');
+    $response = $response->withHeader('Content-Disposition', 'inline; filename="' . $nomeArquivo . '"');
+    $response->getBody()->write(file_get_contents($caminhoCompleto));
+    return $response;
+});
 
 $app->run();
