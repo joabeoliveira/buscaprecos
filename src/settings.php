@@ -38,3 +38,37 @@ function getDbConnection(): PDO
         throw new \PDOException($e->getMessage(), (int)$e->getCode());
     }
 }
+
+// =======================================================
+//     INÍCIO DA NOVA FUNÇÃO AUXILIAR DE FORMATAÇÃO
+// =======================================================
+/**
+ * Aplica uma máscara a uma string.
+ * Ex: formatarString("11222333000199", "##.###.###/####-##")
+ *
+ * @param string $string A string de entrada (apenas dígitos).
+ * @param string $mascara A máscara a ser aplicada, usando '#' como placeholder.
+ * @return string A string formatada.
+ */
+function formatarString(string $string, string $mascara): string
+{
+    if (empty($string)) {
+        return '';
+    }
+    $string = preg_replace('/[^0-9]/', '', $string);
+    $retorno = '';
+    $posicao = 0;
+    for ($i = 0; $i < strlen($mascara); $i++) {
+        if ($mascara[$i] === '#') {
+            if (isset($string[$posicao])) {
+                $retorno .= $string[$posicao++];
+            }
+        } else {
+            $retorno .= $mascara[$i];
+        }
+    }
+    return $retorno;
+}
+// =======================================================
+//                     FIM DA FUNÇÃO
+// =======================================================

@@ -11,6 +11,7 @@ use Joabe\Buscaprecos\Controller\FornecedorController; // <-- ADICIONADO
 use Joabe\Buscaprecos\Controller\AnaliseController;
 use Joabe\Buscaprecos\Controller\AcompanhamentoController;
 
+
 $app = AppFactory::create();
 
 $app->addBodyParsingMiddleware();
@@ -110,5 +111,21 @@ $app->get('/download-proposta/{nome_arquivo}', function ($request, $response, $a
     $response->getBody()->write(file_get_contents($caminhoCompleto));
     return $response;
 });
+
+// --- INÍCIO DAS ROTAS EDITAR FORNECEDORES ---
+$app->get('/fornecedores/{id}/editar', [FornecedorController::class, 'exibirFormularioEdicao']);
+$app->post('/fornecedores/{id}/editar', [FornecedorController::class, 'atualizar']);
+$app->post('/fornecedores/{id}/excluir', [FornecedorController::class, 'excluir']);
+
+// --- FIM DAS ROTA DE EDITAR E EXCLUIR FORNECEDORES ---
+
+// --- INÍCIO DAS ROTAS DE IMPORTAÇÃO ---
+$app->get('/fornecedores/importar', [FornecedorController::class, 'exibirFormularioImportacao']);
+$app->post('/fornecedores/importar', [FornecedorController::class, 'processarImportacao']);
+// --- FIM ---
+
+// --- INÍCIO DA NOVA ROTA PARA O MODELO ---
+$app->get('/fornecedores/modelo-planilha', [FornecedorController::class, 'gerarModeloPlanilha']);
+// --- FIM DA NOVA ROTA ---
 
 $app->run();

@@ -364,7 +364,8 @@ Adicionamos um bloco de assinatura que é preenchido dinamicamente.
 
 
 Fornecedores 
-
+1) Ativar o botão de ações e colocar o CRUD para funcionar ok
+2) Permitir a importação de fornecedores por meio de uma planilha ----- em andamento
 
 
 Ações futuras

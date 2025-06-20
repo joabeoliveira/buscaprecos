@@ -33,6 +33,10 @@
     function calcularTotais() {
         console.log('Função de cálculo disponível');
     }
+
     </script>
+    <script src="https://unpkg.com/imask"></script>
+    <script src="/js/masks.js"></script> </body>
+
 </body>
 </html>

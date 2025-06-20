@@ -49,15 +49,27 @@
         <hr>
 
         <div class="card mb-4">
-            <div class="card-header">1. Dados do Proponente</div>
-            <div class="card-body">
-                <div class="row"><div class="col-md-8 mb-2"><label class="form-label">Razão Social</label><input type="text" class="form-control" name="proponente[razao_social]" value="<?= htmlspecialchars($solicitacao['razao_social'] ?? '') ?>" required></div><div class="col-md-4 mb-2"><label class="form-label">CNPJ</label><input type="text" class="form-control" name="proponente[cnpj]" value="<?= htmlspecialchars($solicitacao['cnpj'] ?? '') ?>" required></div></div>
-                <div class="mb-2"><label class="form-label">Endereço Completo</label><input type="text" class="form-control" name="proponente[endereco]" value="<?= htmlspecialchars($solicitacao['endereco'] ?? '') ?>" required></div>
-                <div class="row"><div class="col-md-6 mb-2"><label class="form-label">E-mail</label><input type="email" class="form-control" name="proponente[email]" value="<?= htmlspecialchars($solicitacao['email'] ?? '') ?>" required></div><div class="col-md-6 mb-2"><label class="form-label">Telefone</label><input type="tel" class="form-control" name="proponente[telefone]" value="<?= htmlspecialchars($solicitacao['telefone'] ?? '') ?>" required></div></div>
-                <div class="row"><div class="col-md-6 mb-2"><label class="form-label">Validade (dias)</label><input type="number" class="form-control" name="proponente[validade_proposta]" value="60" required></div><div class="col-md-6 mb-2"><label class="form-label">Data de Emissão</label><input type="date" class="form-control" name="proponente[data_emissao]" value="<?= date('Y-m-d') ?>" required></div></div>
-                <div class="row"><div class="col-md-8 mb-2"><label class="form-label">Nome do Responsável<i class="bi bi-pencil-fill no-print"></i></label><input type="text" class="form-control campo-destacado" id="form_responsavel_nome" name="proponente[responsavel_nome]" required></div><div class="col-md-4 mb-2"><label class="form-label">CPF do Responsável<i class="bi bi-pencil-fill no-print"></i></label><input type="text" class="form-control campo-destacado" name="proponente[responsavel_cpf]" required></div></div>
-            </div>
+    <div class="card-header">1. Dados do Proponente (Confirme ou Altere se Necessário)</div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8 mb-2"><label class="form-label">Razão Social</label><input type="text" class="form-control" name="proponente[razao_social]" value="<?= htmlspecialchars($solicitacao['razao_social'] ?? '') ?>" required></div>
+            <div class="col-md-4 mb-2"><label class="form-label">CNPJ</label><input type="text" class="form-control" id="form_cnpj" name="proponente[cnpj]" value="<?= htmlspecialchars($solicitacao['cnpj'] ?? '') ?>" required></div>
         </div>
+        <div class="mb-2"><label class="form-label">Endereço Completo</label><input type="text" class="form-control" name="proponente[endereco]" value="<?= htmlspecialchars($solicitacao['endereco'] ?? '') ?>" required></div>
+        <div class="row">
+            <div class="col-md-6 mb-2"><label class="form-label">E-mail</label><input type="email" class="form-control" name="proponente[email]" value="<?= htmlspecialchars($solicitacao['email'] ?? '') ?>" required></div>
+            <div class="col-md-6 mb-2"><label class="form-label">Telefone</label><input type="tel" class="form-control" id="form_telefone" name="proponente[telefone]" value="<?= htmlspecialchars($solicitacao['telefone'] ?? '') ?>" required></div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-2"><label class="form-label">Validade (dias)</label><input type="number" class="form-control" name="proponente[validade_proposta]" value="60" required></div>
+            <div class="col-md-6 mb-2"><label class="form-label">Data de Emissão</label><input type="date" class="form-control" name="proponente[data_emissao]" value="<?= date('Y-m-d') ?>" required></div>
+        </div>
+        <div class="row">
+            <div class="col-md-8 mb-2"><label class="form-label">Nome do Responsável<i class="bi bi-pencil-fill no-print"></i></label><input type="text" class="form-control campo-destacado" id="form_responsavel_nome" name="proponente[responsavel_nome]" required></div>
+            <div class="col-md-4 mb-2"><label class="form-label">CPF do Responsável<i class="bi bi-pencil-fill no-print"></i></label><input type="text" class="form-control campo-destacado" id="form_responsavel_cpf" name="proponente[responsavel_cpf]" required></div>
+        </div>
+    </div>
+    </div>
 
         <div class="card mb-4">
             <div class="card-header">2. Itens para Cotação</div>

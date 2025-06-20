@@ -103,5 +103,7 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <script src="/js/formulario-dinamico.js"></script>
     <script src="/js/solicitacao-lote.js"></script>
     <script src="/js/analise-precos.js"></script>
+    <script src="https://unpkg.com/imask"></script>
+    <script src="/js/masks.js"></script> </body>
 </body>
 </html>
