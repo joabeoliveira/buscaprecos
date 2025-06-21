@@ -39,6 +39,16 @@ $app->post('/processos/{processo_id}/itens/{item_id}/excluir', [ItemController::
 $app->get('/processos/{processo_id}/itens/{item_id}/editar', [ItemController::class, 'exibirFormularioEdicao']);
 $app->post('/processos/{processo_id}/itens/{item_id}/editar', [ItemController::class, 'atualizar']);
 
+// ROTA PARA IMPORTAÇÃO DE ITENS (sem alteração)
+$app->get('/processos/{processo_id}/itens/importar', [ItemController::class, 'exibirFormularioImportacao']);
+$app->post('/processos/{processo_id}/itens/importar', [ItemController::class, 'processarImportacao']);
+$app->get('/processos/{processo_id}/itens/modelo-planilha', [ItemController::class, 'gerarModeloPlanilha']);
+// ROTA PARA EXIBIR O FORMULÁRIO DE IMPORTAÇÃO DE ITENS
+
+
+
+
+
 // ROTAS PARA PREÇOS (sem alteração)
 $app->get('/processos/{processo_id}/itens/{item_id}/pesquisar', [PrecoController::class, 'exibirPainel']);
 $app->post('/api/painel-de-precos', [PrecoController::class, 'buscarPainelDePrecos']);
