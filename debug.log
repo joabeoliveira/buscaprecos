@@ -117,3 +117,24 @@ Dados Recebidos: Array
 )
 
 ---
+Timestamp: 2025-06-21 13:56:41
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 20
+            [1] => 21
+            [2] => 22
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Entrega em 10 dias após NE
+    [justificativa_fornecedores] => Fornecedores do mercado
+)
+
+---

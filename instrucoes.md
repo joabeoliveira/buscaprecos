@@ -368,8 +368,9 @@ Fornecedores
 2) Permitir a importação de fornecedores por meio de uma planilha ok
 
 em 21/06
-3) Permitir a importação de itens por meio de uma planilha on implementado
-4) Correção da duplicidade em lista da mesa de análise
+3) Permitir a importação de itens por meio de uma planilha ==== ok implementado
+4) Correção da duplicidade ne lista de itens da mesa de análise ==== ok
+5) 
 
 
 

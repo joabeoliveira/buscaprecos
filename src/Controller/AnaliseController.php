@@ -17,40 +17,82 @@ class AnaliseController
         $stmtProcesso->execute([$processo_id]);
         $processo = $stmtProcesso->fetch();
 
-        // 2. Busca todos os itens do processo
-        $stmtItens = $pdo->prepare("SELECT * FROM itens WHERE processo_id = ? ORDER BY numero_item ASC");
-        $stmtItens->execute([$processo_id]);
-        $itens = $stmtItens->fetchAll();
-
-        // 3. Para cada item, busca seus preços e calcula as estatísticas
-        $itensComAnalise = [];
-        foreach ($itens as $item) {
-            $stmtPrecos = $pdo->prepare("SELECT * FROM precos_coletados WHERE item_id = ? ORDER BY valor ASC");
-            $stmtPrecos->execute([$item['id']]);
-            $precos = $stmtPrecos->fetchAll();
-
-            $precosConsiderados = array_filter($precos, fn($p) => $p['status_analise'] === 'considerado');
-            $estatisticas = $this->calcularEstatisticas($precosConsiderados);
-
-            // --- LÓGICA DO ALERTA ---
-            $alertaAmostraInsuficiente = ($estatisticas['total'] > 0 && $estatisticas['total'] < 3);
-
-            $itensComAnalise[] = [
-                'item' => $item,
-                'precos' => $precos,
-                'estatisticas' => $estatisticas,
-                'alerta_amostra' => $alertaAmostraInsuficiente // Passa a flag para a view
-            ];
-
-            $itensComAnalise[] = [
-                'item' => $item,
-                'precos' => $precos,
-                'estatisticas' => $estatisticas
-            ];
+        if (!$processo) {
+            $response->getBody()->write("Processo não encontrado.");
+            return $response->withStatus(404);
         }
 
+        // 2. ÚNICA CONSULTA OTIMIZADA: Busca todos os itens e seus preços de uma vez
+        $sql = "SELECT 
+                    i.id as item_id, i.numero_item, i.descricao, i.unidade_medida, i.catmat_catser, i.quantidade,
+                    i.valor_estimado, i.metodologia_estimativa, i.justificativa_estimativa, i.justificativa_excepcionalidade,
+                    pc.id as preco_id, pc.fonte, pc.valor, pc.data_coleta, pc.fornecedor_nome, 
+                    pc.status_analise, pc.justificativa_descarte
+                FROM itens i
+                LEFT JOIN precos_coletados pc ON i.id = pc.item_id
+                WHERE i.processo_id = ?
+                ORDER BY i.numero_item ASC, pc.valor ASC";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$processo_id]);
+        $resultados = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        // 3. Processa os resultados para agrupar os preços por item
+        $itensAgrupados = [];
+        foreach ($resultados as $linha) {
+            $itemId = $linha['item_id'];
+            if (!isset($itensAgrupados[$itemId])) {
+                $itensAgrupados[$itemId] = [
+                    'item' => [
+                        'id' => $itemId,
+                        'numero_item' => $linha['numero_item'],
+                        'descricao' => $linha['descricao'],
+                        'unidade_medida' => $linha['unidade_medida'],
+                        'catmat_catser' => $linha['catmat_catser'],
+                        'quantidade' => $linha['quantidade'],
+                        'valor_estimado' => $linha['valor_estimado'],
+                        'metodologia_estimativa' => $linha['metodologia_estimativa'],
+                        'justificativa_estimativa' => $linha['justificativa_estimativa'],
+                        'justificativa_excepcionalidade' => $linha['justificativa_excepcionalidade'],
+                    ],
+                    'precos' => []
+                ];
+            }
+            if ($linha['preco_id'] !== null) {
+                $itensAgrupados[$itemId]['precos'][] = [
+                    'id' => $linha['preco_id'],
+                    'fonte' => $linha['fonte'],
+                    'valor' => $linha['valor'],
+                    'unidade_medida' => $linha['unidade_medida'],
+                    'data_coleta' => $linha['data_coleta'],
+                    'fornecedor_nome' => $linha['fornecedor_nome'],
+                    'status_analise' => $linha['status_analise'],
+                    'justificativa_descarte' => $linha['justificativa_descarte']
+                ];
+            }
+        }
+
+        // 4. Calcula as estatísticas e a flag de alerta para cada item
+        $itensComAnalise = [];
+        foreach ($itensAgrupados as $itemAgrupado) {
+            $precosConsiderados = array_filter($itemAgrupado['precos'], fn($p) => $p['status_analise'] === 'considerado');
+            $estatisticas = $this->calcularEstatisticas($precosConsiderados);
+            
+            // =======================================================
+            //     INÍCIO DA CORREÇÃO: LÓGICA DO ALERTA ADICIONADA
+            // =======================================================
+            $itemAgrupado['alerta_amostra'] = ($estatisticas['total'] > 0 && $estatisticas['total'] < 3);
+            // =======================================================
+            //                      FIM DA CORREÇÃO
+            // =======================================================
+
+            $itemAgrupado['estatisticas'] = $estatisticas;
+            $itensComAnalise[] = $itemAgrupado;
+        }
+
+        // 5. Renderiza a view com os dados processados
         $tituloPagina = "Mesa de Análise Geral do Processo";
-        $paginaConteudo = __DIR__ . '/../View/analise/processo.php'; // Nova view
+        $paginaConteudo = __DIR__ . '/../View/analise/processo.php';
         
         ob_start();
         require __DIR__ . '/../View/layout/main.php';
@@ -59,7 +101,6 @@ class AnaliseController
         $response->getBody()->write($view);
         return $response;
     }
-
     /**
      * Função auxiliar para calcular as estatísticas de um conjunto de preços.
      */
