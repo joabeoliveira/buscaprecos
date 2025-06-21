@@ -370,7 +370,9 @@ Fornecedores
 em 21/06
 3) Permitir a importação de itens por meio de uma planilha ==== ok implementado
 4) Correção da duplicidade ne lista de itens da mesa de análise ==== ok
-5) 
+
+5) Implantação do módulo de relatório para fechamento da pesquisa de preços
+ 
 
 
 

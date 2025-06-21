@@ -13,8 +13,8 @@
 
         <div class="row">
             <div class="col-md-6 mb-3">
-                <label for="agente_responsavel" class="form-label">Agente Responsável</label>
-                <input type="text" class="form-control" id="agente_responsavel" name="agente_responsavel" required>
+                <label for="agente_matricula" class="form-label">Matrícula do Agente</label>
+                <input type="text" class="form-control" id="agente_matricula" name="agente_matricula" value="<?= htmlspecialchars($processo['agente_matricula'] ?? '') ?>">
             </div>
             <div class="col-md-3 mb-3">
                 <label for="uasg" class="form-label">Código UASG</label>

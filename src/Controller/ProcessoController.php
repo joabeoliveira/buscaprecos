@@ -48,25 +48,23 @@ class ProcessoController
 {
     $dados = $request->getParsedBody();
 
-    // **ERRO CORRIGIDO AQUI**: Faltavam as colunas 'agente_responsavel' e 'uasg'.
-    $sql = "INSERT INTO processos (numero_processo, nome_processo, tipo_contratacao, status, agente_responsavel, uasg, regiao) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO processos (numero_processo, nome_processo, tipo_contratacao, status, agente_responsavel, agente_matricula, uasg, regiao) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     $pdo = \getDbConnection();
     $stmt = $pdo->prepare($sql);
 
-    // Agora a quantidade de parâmetros está correta.
     $stmt->execute([
         $dados['numero_processo'],
         $dados['nome_processo'],
         $dados['tipo_contratacao'],
         $dados['status'],
         $dados['agente_responsavel'], 
+        $dados['agente_matricula'] ?? null, // Novo campo
         $dados['uasg'],          
         $dados['regiao']
     ]);
 
-    // **AJUSTE**: Redirecionar para a lista de processos é mais intuitivo que para o dashboard.
     return $response->withHeader('Location', '/processos')->withStatus(302);
 }
 
@@ -103,29 +101,23 @@ class ProcessoController
     $id = $args['id'];
     $dados = $request->getParsedBody();
 
-    // Query atualizada para incluir a 'regiao'
-    $sql = "UPDATE processos 
-            SET numero_processo = ?, 
-                nome_processo = ?, 
-                tipo_contratacao = ?, 
-                status = ?, 
-                agente_responsavel = ?, 
-                uasg = ?,
-                regiao = ? 
+    $sql = "UPDATE processos SET 
+                numero_processo = ?, nome_processo = ?, tipo_contratacao = ?, status = ?, 
+                agente_responsavel = ?, agente_matricula = ?, uasg = ?, regiao = ? 
             WHERE id = ?";
 
     $pdo = \getDbConnection();
     $stmt = $pdo->prepare($sql);
 
-    // Array de execução atualizado
     $stmt->execute([
         $dados['numero_processo'],
         $dados['nome_processo'],
         $dados['tipo_contratacao'],
         $dados['status'],
         $dados['agente_responsavel'], 
+        $dados['agente_matricula'] ?? null, // Novo campo
         $dados['uasg'],
-        $dados['regiao'], // Novo campo
+        $dados['regiao'],
         $id
     ]);
 

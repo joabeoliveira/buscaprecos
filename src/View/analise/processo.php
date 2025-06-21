@@ -4,6 +4,9 @@
             <a href="/processos/<?= $processo['id'] ?>/itens" class="btn btn-sm btn-outline-secondary mb-2">Voltar para a Lista de Itens</a>
             <h1>Mesa de Análise Geral</h1>
             <p class="text-muted">Processo: <strong><?= htmlspecialchars($processo['nome_processo']) ?></strong></p>
+            <a href="/processos/<?= $processo['id'] ?>/relatorio" target="_blank" class="btn btn-danger">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Gerar Relatório Final (PDF)
+            </a>
         </div>
     </div>
     
@@ -186,5 +189,22 @@
           </form>
         </div>
       </div>
+    </div>
+</div>
+
+<hr class="mt-5">
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h4 class="mb-0">Justificativas Gerais do Processo</h4>
+    </div>
+    <div class="card-body">
+        <form action="/processos/<?= $processo['id'] ?>/salvar-justificativas" method="POST">
+            <div class="mb-3">
+                <label for="justificativa_fontes" class="form-label"><strong>Justificativa pela não priorização das Fontes (se aplicável)</strong></label>
+                <textarea class="form-control" id="justificativa_fontes" name="justificativa_fontes" rows="4"><?= htmlspecialchars($processo['justificativa_fontes'] ?? '') ?></textarea>
+                <div class="form-text">Preencha este campo caso não tenha sido possível priorizar a pesquisa no Painel de Preços e em contratações similares de outros órgãos (Incisos I e II do Art. 5º), conforme exigido pela IN 65/2021.</div>
+            </div>
+            <button type="submit" class="btn btn-secondary">Salvar Justificativa</button>
+        </form>
     </div>
 </div>

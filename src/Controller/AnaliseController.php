@@ -217,4 +217,36 @@ public function salvarAnaliseItem($request, $response, $args)
     return $response->withHeader('Location', $redirectUrl)->withStatus(302);
 }
 
+/**
+     * Salva as justificativas gerais do processo, como a justificativa
+     * pela não utilização de fontes prioritárias.
+     */
+    public function salvarJustificativasProcesso($request, $response, $args)
+    {
+        // 1. Pega o ID do processo vindo da URL
+        $processo_id = $args['id'];
+        
+        // 2. Pega os dados que foram enviados pelo formulário
+        $dados = $request->getParsedBody();
+        $justificativaFontes = $dados['justificativa_fontes'] ?? null;
+
+        // 3. Prepara a query SQL para atualizar a tabela 'processos'
+        $pdo = \getDbConnection();
+        $sql = "UPDATE processos SET justificativa_fontes = ? WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        
+        // 4. Executa a query, salvando a justificativa no banco
+        $stmt->execute([$justificativaFontes, $processo_id]);
+
+        // 5. Cria uma mensagem de sucesso para o usuário
+        $_SESSION['flash'] = [
+            'tipo' => 'success',
+            'mensagem' => 'Justificativa do processo salva com sucesso!'
+        ];
+
+        // 6. Redireciona o usuário de volta para a página de análise
+        $redirectUrl = "/processos/{$processo_id}/analise";
+        return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+    }
+
 }

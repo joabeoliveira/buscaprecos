@@ -10,6 +10,8 @@ use Joabe\Buscaprecos\Controller\DashboardController; // <-- ADICIONADO
 use Joabe\Buscaprecos\Controller\FornecedorController; // <-- ADICIONADO
 use Joabe\Buscaprecos\Controller\AnaliseController;
 use Joabe\Buscaprecos\Controller\AcompanhamentoController;
+use Joabe\Buscaprecos\Controller\RelatorioController;
+
 
 
 $app = AppFactory::create();
@@ -136,6 +138,13 @@ $app->post('/fornecedores/importar', [FornecedorController::class, 'processarImp
 
 // --- INÍCIO DA NOVA ROTA PARA O MODELO ---
 $app->get('/fornecedores/modelo-planilha', [FornecedorController::class, 'gerarModeloPlanilha']);
+// --- FIM DA NOVA ROTA ---
+
+// ROTA PARA SALVAR JUSTIFICATIVAS DE EXCEPCIONALIDADE
+$app->post('/processos/{id}/salvar-justificativas', [AnaliseController::class, 'salvarJustificativasProcesso']);
+
+// --- INÍCIO DA NOVA ROTA DE RELATÓRIO ---
+$app->get('/processos/{id}/relatorio', [RelatorioController::class, 'gerarRelatorio']);
 // --- FIM DA NOVA ROTA ---
 
 $app->run();
