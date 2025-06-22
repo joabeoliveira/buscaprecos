@@ -371,7 +371,11 @@ em 21/06
 3) Permitir a importação de itens por meio de uma planilha ==== ok implementado
 4) Correção da duplicidade ne lista de itens da mesa de análise ==== ok
 
-5) Implantação do módulo de relatório para fechamento da pesquisa de preços
+5) Implantação do módulo de relatório para fechamento da pesquisa de preços ok implantado
+
+em 22/06
+6) Implantação da cotação rápida ok, mas, precisa ajustar
+7) Ajuste no relatório final
  
 
 

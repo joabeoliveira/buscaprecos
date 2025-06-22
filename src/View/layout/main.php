@@ -63,6 +63,12 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
                 </li>
 
                 <li>
+                    <a href="/cotacao-rapida" class="nav-link <?= str_starts_with($currentPath, '/cotacao-rapida') ? 'active' : 'text-white' ?>">
+                        <i class="bi bi-lightning-charge-fill me-2"></i> Cotação Rápida
+                    </a>
+                </li>
+
+                <li>
                     <a href="#" class="nav-link text-white">
                         <i class="bi bi-people me-2"></i> Usuários
                     </a>
@@ -105,5 +111,7 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <script src="/js/analise-precos.js"></script>
     <script src="https://unpkg.com/imask"></script>
     <script src="/js/masks.js"></script> </body>
+    <script src="/js/cotacao-rapida.js"></script> </body>
+
 </body>
 </html>

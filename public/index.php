@@ -11,6 +11,7 @@ use Joabe\Buscaprecos\Controller\FornecedorController; // <-- ADICIONADO
 use Joabe\Buscaprecos\Controller\AnaliseController;
 use Joabe\Buscaprecos\Controller\AcompanhamentoController;
 use Joabe\Buscaprecos\Controller\RelatorioController;
+use Joabe\Buscaprecos\Controller\CotacaoRapidaController;
 
 
 
@@ -146,5 +147,12 @@ $app->post('/processos/{id}/salvar-justificativas', [AnaliseController::class, '
 // --- INÍCIO DA NOVA ROTA DE RELATÓRIO ---
 $app->get('/processos/{id}/relatorio', [RelatorioController::class, 'gerarRelatorio']);
 // --- FIM DA NOVA ROTA ---
+
+// --- INÍCIO DAS NOVAS ROTAS DE COTAÇÃO RÁPIDA ---
+$app->get('/cotacao-rapida', [CotacaoRapidaController::class, 'exibirFormulario']);
+$app->post('/api/cotacao-rapida/buscar', [CotacaoRapidaController::class, 'buscarPrecos']);
+// --- FIM DAS NOVAS ROTAS ---
+
+
 
 $app->run();
