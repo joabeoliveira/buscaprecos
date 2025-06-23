@@ -153,6 +153,9 @@ $app->get('/cotacao-rapida', [CotacaoRapidaController::class, 'exibirFormulario'
 $app->post('/api/cotacao-rapida/buscar', [CotacaoRapidaController::class, 'buscarPrecos']);
 // --- FIM DAS NOVAS ROTAS ---
 
+// ROTA PARA LISTAR RELATÓRIOS
+$app->get('/relatorios', [RelatorioController::class, 'listar']);
+// fim das rotas de relatório
 
 
 $app->run();

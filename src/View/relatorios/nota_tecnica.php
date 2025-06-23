@@ -20,7 +20,7 @@
     </style>
 </head>
 <body>
-    <h3>NOTA TÉCNICA DE PESQUISA DE PREÇOS</h3>
+    <h3>NOTA TÉCNICA Nº <?= sprintf('%04d', $novoNumero) ?>/<?= $anoAtual ?></h3>
 
     <h4>I - OBJETO DA CONTRATAÇÃO</h4>
     <p>O objeto da presente contratação refere-se a <strong><?= htmlspecialchars($dadosProcesso['nome_processo']) ?></strong>, conforme especificações detalhadas nos itens listados neste documento e no Termo de Referência do Processo nº <?= htmlspecialchars($dadosProcesso['numero_processo']) ?>.</p>
@@ -90,6 +90,31 @@
             <?php endif; ?>
         </ul>
     <?php endforeach; ?>
+
+    <p>4.2. Dentro dos preços coletados, foram desconsiderados aqueles inexequíveis, inconsistentes ou excessivamente elevados, conforme abaixo:</p>
+    <?php if (!empty($precosDesconsiderados)): ?>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fonte da Pesquisa</th>
+                    <th>Preço (R$)</th>
+                    <th>Justificativa do Descarte</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($precosDesconsiderados as $preco): ?>
+                <tr>
+                    <td><?= htmlspecialchars($preco['fonte']) ?> (Item <?= htmlspecialchars($preco['numero_item']) ?>)</td>
+                    <td class="text-center"><?= number_format($preco['valor'], 2, ',', '.') ?></td>
+                    <td><?= htmlspecialchars($preco['justificativa_descarte']) ?></td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p class="text-center">Nenhum preço foi desconsiderado nesta pesquisa.</p>
+    <p>Não houve preços desconsiderados na presente pesquisa.</p>
+<?php endif; ?>
 
     <h4>V - MEMÓRIA DE CÁLCULO E CONCLUSÃO</h4>
     <p>5.1. O preço estimado da contratação é de <strong>R$ <?= number_format(array_sum(array_map(fn($i) => $i['valor_estimado'] * $i['quantidade'], $dadosItens)), 2, ',', '.') ?></strong>, conforme memória de cálculo abaixo:</p>

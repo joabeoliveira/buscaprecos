@@ -69,6 +69,12 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
                 </li>
 
                 <li>
+                    <a href="/relatorios" class="nav-link <?= str_starts_with($currentPath, '/relatorios') ? 'active' : 'text-white' ?>">
+                        <i class="bi bi-collection-fill me-2"></i> Histórico de Relatórios
+                    </a>
+                </li>
+
+                <li>
                     <a href="#" class="nav-link text-white">
                         <i class="bi bi-people me-2"></i> Usuários
                     </a>
