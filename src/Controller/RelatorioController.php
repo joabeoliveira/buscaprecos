@@ -107,10 +107,15 @@ class RelatorioController
     public function listar($request, $response, $args)
     {
         $pdo = \getDbConnection();
+        // Query atualizada para buscar dados de ambos os tipos de relatório
         $stmt = $pdo->query(
-            "SELECT nt.*, p.numero_processo, p.nome_processo 
+            "SELECT 
+                nt.id, nt.numero_nota, nt.ano_nota, nt.tipo, nt.gerada_em, nt.gerada_por,
+                p.numero_processo, p.nome_processo,
+                cr.titulo as titulo_cotacao
             FROM notas_tecnicas nt
-            JOIN processos p ON nt.processo_id = p.id
+            LEFT JOIN processos p ON nt.processo_id = p.id
+            LEFT JOIN cotacoes_rapidas cr ON nt.cotacao_rapida_id = cr.id
             ORDER BY nt.ano_nota DESC, nt.numero_nota DESC"
         );
         $notas = $stmt->fetchAll(\PDO::FETCH_ASSOC);
@@ -125,5 +130,59 @@ class RelatorioController
     }
     // Exibir Formulário de Pesquisa
 
+
+
+    public function visualizar($request, $response, $args)
+    {
+        $nota_id = $args['nota_id'];
+        $pdo = \getDbConnection();
+        $stmtNota = $pdo->prepare("SELECT * FROM notas_tecnicas WHERE id = ?");
+        $stmtNota->execute([$nota_id]);
+        $dadosNota = $stmtNota->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$dadosNota) {
+            $response->getBody()->write("Relatório não encontrado.");
+            return $response->withStatus(404);
+        }
+        
+        $html = '';
+        
+        if ($dadosNota['tipo'] === 'COTACAO_RAPIDA') {
+            $cotacao_rapida_id = $dadosNota['cotacao_rapida_id'];
+            
+            $stmtCotacao = $pdo->prepare("SELECT * FROM cotacoes_rapidas WHERE id = ?");
+            $stmtCotacao->execute([$cotacao_rapida_id]);
+            $dadosCotacao = $stmtCotacao->fetch(\PDO::FETCH_ASSOC);
+
+            $stmtItens = $pdo->prepare("SELECT * FROM cotacoes_rapidas_itens WHERE cotacao_rapida_id = ? ORDER BY id ASC");
+            $stmtItens->execute([$cotacao_rapida_id]);
+            $dadosItens = $stmtItens->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($dadosItens as $key => $item) {
+                $stmtPrecos = $pdo->prepare("SELECT * FROM cotacoes_rapidas_precos WHERE cotacao_rapida_item_id = ? ORDER BY preco_unitario ASC");
+                $stmtPrecos->execute([$item['id']]);
+                $dadosItens[$key]['precos'] = $stmtPrecos->fetchAll(\PDO::FETCH_ASSOC);
+            }
+
+            ob_start();
+            require __DIR__ . '/../View/relatorios/nota_tecnica_rapida.php';
+            $html = ob_get_clean();
+
+        } else { // 'PROCESSO'
+            // A lógica de geração do relatório de processo completo continua aqui...
+            // Por enquanto, vamos manter como estava.
+            $html = "<h1>Geração de relatório para Processo Completo.</h1>";
+        }
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $dompdf->stream("Relatorio_{$dadosNota['numero_nota']}_{$dadosNota['ano_nota']}.pdf", ["Attachment" => false]);
+        return $response;
+    }
 
 }

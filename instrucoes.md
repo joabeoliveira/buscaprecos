@@ -377,11 +377,11 @@ em 22/06
 6) Implantação da cotação rápida ok, mas, precisa ajustar
 7) Ajuste no relatório final ok
 8) Ajuste na cotação rápida:
-    a) Possibitar múltiplos itens
-    b) Possibilitar importação de itens
-    c) Tornar mais visível o que é preços do painel de preços (inciso I) e o que é similares por região (inciso II)
-    d) Deve ser possível desconsiderar valores inexequíveis ou excessivos para fins de cálculo 
-    e) Deve ser possível gerar um relatório para a cotação rápida igual o relatório final, com as devidas adequações por ser cotação rápida, e deve entrar também na lista de Histórico de Relatórios
+    a) Possibitar múltiplos itens ok
+    b) Possibilitar importação de itens ok
+    c) Tornar mais visível o que é preços do painel de preços (inciso I) e o que é similares por região (inciso II) ok
+    d) Deve ser possível desconsiderar valores inexequíveis ou excessivos para fins de cálculo ok
+    e) Deve ser possível gerar um relatório para a cotação rápida igual o relatório final, com as devidas adequações por ser cotação rápida, e deve entrar também na lista de Histórico de Relatórios ok
       Fase 1, 2 e 3
  
 

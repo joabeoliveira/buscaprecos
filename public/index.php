@@ -157,5 +157,14 @@ $app->post('/api/cotacao-rapida/buscar', [CotacaoRapidaController::class, 'busca
 $app->get('/relatorios', [RelatorioController::class, 'listar']);
 // fim das rotas de relatório
 
+// ROTA PARA SALVAR COTAÇÃO RÁPIDA
+$app->post('/api/cotacao-rapida/salvar-relatorio', [CotacaoRapidaController::class, 'salvarAnalise']);
+
+// ROTA PARA VISUALIZAR RELATÓRIO DE COTAÇÃO RÁPIDA
+$app->get('/relatorios/{nota_id}/visualizar', [RelatorioController::class, 'visualizar']);
+
+// --- INÍCIO DA NOVA ROTA PARA O MODELO ---
+$app->get('/cotacao-rapida/modelo-planilha', [CotacaoRapidaController::class, 'gerarModeloPlanilha']);
+// --- FIM DA NOVA ROTA ---
 
 $app->run();

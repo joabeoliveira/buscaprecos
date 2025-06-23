@@ -118,6 +118,8 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <script src="https://unpkg.com/imask"></script>
     <script src="/js/masks.js"></script> </body>
     <script src="/js/cotacao-rapida.js"></script> </body>
+    <script src="https://unpkg.com/read-excel-file@5.7.1/bundle/read-excel-file.min.js"></script>
+
 
 </body>
 </html>
