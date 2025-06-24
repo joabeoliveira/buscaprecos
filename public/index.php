@@ -15,6 +15,7 @@ use Joabe\Buscaprecos\Controller\RelatorioController;
 use Joabe\Buscaprecos\Controller\CotacaoRapidaController;
 use Joabe\Buscaprecos\Controller\UsuarioController;
 
+
 // 2. Criação da Aplicação e Middlewares
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
@@ -38,6 +39,15 @@ $app->add($authMiddleware);
 // Rotas Públicas (Login e Resposta de Cotação)
 $app->get('/login', [UsuarioController::class, 'exibirFormularioLogin']);
 $app->post('/login', [UsuarioController::class, 'processarLogin']);
+
+// Rota para exibir o formulário de redefinição de senha
+$app->get('/esqueceu-senha', [UsuarioController::class, 'exibirFormularioEsqueceuSenha']);
+$app->post('/esqueceu-senha', [UsuarioController::class, 'solicitarRedefinicao']);
+
+// Rota para processar a redefinição de senha
+$app->get('/redefinir-senha', [UsuarioController::class, 'exibirFormularioRedefinir']);
+$app->post('/redefinir-senha', [UsuarioController::class, 'processarRedefinicao']);
+
 $app->get('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'exibirFormulario']);
 $app->post('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'salvarResposta']);
 

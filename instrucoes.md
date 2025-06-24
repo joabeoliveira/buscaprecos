@@ -386,8 +386,8 @@ em 22/06
 
       em 23/06
 
-    9) Implementação do módulo de autenticação e usuários
-    10) 
+    9) Implementação do módulo de autenticação e usuários ok
+    10) Implementação de recuperação de senha 
  
 
 

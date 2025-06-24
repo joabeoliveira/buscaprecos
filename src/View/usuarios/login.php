@@ -62,6 +62,9 @@ if (session_status() === PHP_SESSION_NONE) {
                     <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
                 </div>
             </form>
+            <div class="text-center mt-3">
+                <a href="/esqueceu-senha">Esqueci minha senha</a>
+            </div>
         </div>
     </div>
 
