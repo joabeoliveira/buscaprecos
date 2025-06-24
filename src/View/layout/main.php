@@ -87,10 +87,13 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
             </ul>
             <hr>
             <div>
-                <a href="#" class="d-flex align-items-center text-white text-decoration-none">
+                <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-person-circle fs-4 me-2"></i>
-                    <strong>Usuário</strong>
+                    <strong><?= htmlspecialchars($_SESSION['usuario_nome'] ?? 'Usuário') ?></strong>
                 </a>
+                <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
+                    <li><a class="dropdown-item" href="/logout">Sair</a></li>
+                </ul>
             </div>
         </div>
         <main class="main-content">

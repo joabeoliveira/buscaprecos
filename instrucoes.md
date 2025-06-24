@@ -383,6 +383,11 @@ em 22/06
     d) Deve ser possível desconsiderar valores inexequíveis ou excessivos para fins de cálculo ok
     e) Deve ser possível gerar um relatório para a cotação rápida igual o relatório final, com as devidas adequações por ser cotação rápida, e deve entrar também na lista de Histórico de Relatórios ok
       Fase 1, 2 e 3
+
+      em 23/06
+
+    9) Implementação do módulo de autenticação e usuários
+    10) 
  
 
 

@@ -2,169 +2,123 @@
 session_start();
 require __DIR__ . '/../src/settings.php';
 
+// 1. Inclusão dos Controllers (Use statements)
 use Slim\Factory\AppFactory;
 use Joabe\Buscaprecos\Controller\ProcessoController;
 use Joabe\Buscaprecos\Controller\ItemController;
 use Joabe\Buscaprecos\Controller\PrecoController;
-use Joabe\Buscaprecos\Controller\DashboardController; // <-- ADICIONADO
-use Joabe\Buscaprecos\Controller\FornecedorController; // <-- ADICIONADO
+use Joabe\Buscaprecos\Controller\DashboardController;
+use Joabe\Buscaprecos\Controller\FornecedorController;
 use Joabe\Buscaprecos\Controller\AnaliseController;
 use Joabe\Buscaprecos\Controller\AcompanhamentoController;
 use Joabe\Buscaprecos\Controller\RelatorioController;
 use Joabe\Buscaprecos\Controller\CotacaoRapidaController;
+use Joabe\Buscaprecos\Controller\UsuarioController;
 
-
-
+// 2. Criação da Aplicação e Middlewares
 $app = AppFactory::create();
-
 $app->addBodyParsingMiddleware();
 
-// Rota para o diretório raiz
+// Middleware de Autenticação
+$authMiddleware = function ($request, $handler) use ($app) {
+    $path = $request->getUri()->getPath();
+    $publicRoutes = ['/login']; // Apenas a rota /login é pública
+    $isPublic = in_array($path, $publicRoutes) || str_starts_with($path, '/cotacao/responder');
+
+    if (!isset($_SESSION['usuario_id']) && !$isPublic) {
+        $response = $app->getResponseFactory()->createResponse();
+        return $response->withHeader('Location', '/login')->withStatus(302);
+    }
+    return $handler->handle($request);
+};
+$app->add($authMiddleware);
+
+
+// 3. Definição de TODAS as Rotas
+// Rotas Públicas (Login e Resposta de Cotação)
+$app->get('/login', [UsuarioController::class, 'exibirFormularioLogin']);
+$app->post('/login', [UsuarioController::class, 'processarLogin']);
+$app->get('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'exibirFormulario']);
+$app->post('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'salvarResposta']);
+
+// Rotas Protegidas
+$app->get('/logout', [UsuarioController::class, 'processarLogout']);
 $app->get('/', function ($request, $response) {
     return $response->withHeader('Location', '/dashboard')->withStatus(302);
 });
-
-// ROTA PRINCIPAL AGORA É O NOVO DASHBOARD
 $app->get('/dashboard', [DashboardController::class, 'exibir']);
 
-// ROTAS PARA PROCESSOS (AGORA EM /processos)
-$app->get('/processos', [ProcessoController::class, 'listar']); // <-- NOVA ROTA PARA A LISTA
+// Processos
+$app->get('/processos', [ProcessoController::class, 'listar']);
 $app->get('/processos/novo', [ProcessoController::class, 'exibirFormulario']);
 $app->post('/processos', [ProcessoController::class, 'criar']);
 $app->get('/processos/{id}/editar', [ProcessoController::class, 'exibirFormularioEdicao']);
 $app->post('/processos/{id}/editar', [ProcessoController::class, 'atualizar']);
 $app->post('/processos/{id}/excluir', [ProcessoController::class, 'excluir']);
+$app->get('/processos/{processo_id}/analise', [AnaliseController::class, 'exibirAnaliseProcesso']);
+$app->post('/processos/{id}/salvar-justificativas', [AnaliseController::class, 'salvarJustificativasProcesso']);
 
-// ROTAS PARA ITENS (sem alteração)
+// Itens
 $app->get('/processos/{processo_id}/itens', [ItemController::class, 'listar']);
 $app->post('/processos/{processo_id}/itens', [ItemController::class, 'criar']);
-$app->post('/processos/{processo_id}/itens/{item_id}/excluir', [ItemController::class, 'excluir']);
 $app->get('/processos/{processo_id}/itens/{item_id}/editar', [ItemController::class, 'exibirFormularioEdicao']);
 $app->post('/processos/{processo_id}/itens/{item_id}/editar', [ItemController::class, 'atualizar']);
-
-// ROTA PARA IMPORTAÇÃO DE ITENS (sem alteração)
+$app->post('/processos/{processo_id}/itens/{item_id}/excluir', [ItemController::class, 'excluir']);
 $app->get('/processos/{processo_id}/itens/importar', [ItemController::class, 'exibirFormularioImportacao']);
 $app->post('/processos/{processo_id}/itens/importar', [ItemController::class, 'processarImportacao']);
 $app->get('/processos/{processo_id}/itens/modelo-planilha', [ItemController::class, 'gerarModeloPlanilha']);
-// ROTA PARA EXIBIR O FORMULÁRIO DE IMPORTAÇÃO DE ITENS
+$app->post('/processos/{processo_id}/itens/{item_id}/salvar-analise', [AnaliseController::class, 'salvarAnaliseItem']);
 
-
-
-
-
-// ROTAS PARA PREÇOS (sem alteração)
+// Preços e Cotações
 $app->get('/processos/{processo_id}/itens/{item_id}/pesquisar', [PrecoController::class, 'exibirPainel']);
-$app->post('/api/painel-de-precos', [PrecoController::class, 'buscarPainelDePrecos']);
 $app->post('/processos/{processo_id}/itens/{item_id}/precos', [PrecoController::class, 'criar']);
-
-// ROTA PARA EXCLUIR PREÇO (sem alteração)
 $app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/excluir', [PrecoController::class, 'excluir']);
+$app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/desconsiderar', [PrecoController::class, 'desconsiderarPreco']);
+$app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/reconsiderar', [PrecoController::class, 'reconsiderarPreco']);
+$app->post('/api/processos/{processo_id}/solicitacao-lote', [PrecoController::class, 'enviarSolicitacaoLote']);
 
-$app->post('/api/processos/{processo_id}/itens/{item_id}/precos/lote', [PrecoController::class, 'criarLote']);
-
-//   ROTA PARA BUSCA EM ÓRGÃOS
-$app->post('/api/processos/{processo_id}/itens/{item_id}/pesquisar-orgaos', [PrecoController::class, 'pesquisarContratacoesSimilares']);
-
-
-//         ROTAS PARA FORNECEDORES
+// Fornecedores
 $app->get('/fornecedores', [FornecedorController::class, 'listar']);
 $app->get('/fornecedores/novo', [FornecedorController::class, 'exibirFormulario']);
 $app->post('/fornecedores', [FornecedorController::class, 'criar']);
+$app->get('/fornecedores/{id}/editar', [FornecedorController::class, 'exibirFormularioEdicao']);
+$app->post('/fornecedores/{id}/editar', [FornecedorController::class, 'atualizar']);
+$app->post('/fornecedores/{id}/excluir', [FornecedorController::class, 'excluir']);
+$app->get('/fornecedores/importar', [FornecedorController::class, 'exibirFormularioImportacao']);
+$app->post('/fornecedores/importar', [FornecedorController::class, 'processarImportacao']);
+$app->get('/fornecedores/modelo-planilha', [FornecedorController::class, 'gerarModeloPlanilha']);
 
-$app->get('/api/fornecedores', [FornecedorController::class, 'listarJson']);
+// Cotação Rápida
+$app->get('/cotacao-rapida', [CotacaoRapidaController::class, 'exibirFormulario']);
+$app->get('/cotacao-rapida/modelo-planilha', [CotacaoRapidaController::class, 'gerarModeloPlanilha']);
 
-// API para enviar as solicitações de cotação
-$app->post('/api/processos/{processo_id}/itens/{item_id}/solicitar-cotacao', [PrecoController::class, 'enviarSolicitacoes']);
-// ===============================================
-
-// Rota para buscar os ramos de atividade únicos
-$app->get('/api/fornecedores/ramos-atividade', [FornecedorController::class, 'listarRamosAtividade']);
-// Rota para buscar fornecedores filtrando por ramo
-$app->get('/api/fornecedores/por-ramo', [FornecedorController::class, 'listarPorRamo']);
-// Rota principal para criar e enviar a solicitação em lote
-$app->post('/api/processos/{processo_id}/solicitacao-lote', [PrecoController::class, 'enviarSolicitacaoLote']);
-
-//   ROTA PÚBLICA PARA RESPOSTA DO FORNECEDOR
-// =======================================================
-$app->get('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'exibirFormulario']);
-$app->post('/cotacao/responder', [\Joabe\Buscaprecos\Controller\CotacaoPublicaController::class, 'salvarResposta']);
-// =======================================================
-
-// ROTA DA ANÁLISE GERAL DO PROCESSO
-// ===============================================
-$app->get('/processos/{processo_id}/analise', [AnaliseController::class, 'exibirAnaliseProcesso']);
-// ===============================================
-
-// ROTAS DE CURADORIA
-// ===============================================
-$app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/desconsiderar', [PrecoController::class, 'desconsiderarPreco']);
-$app->post('/processos/{processo_id}/itens/{item_id}/precos/{preco_id}/reconsiderar', [PrecoController::class, 'reconsiderarPreco']);
-// ===============================================
-
-// ROTA PARA SALVAR A ANÁLISE
-// ===============================================
-$app->post('/processos/{processo_id}/itens/{item_id}/salvar-analise', [AnaliseController::class, 'salvarAnaliseItem']);
-// ===============================================
-
-// ROTA PARA A NOVA PÁGINA DE ACOMPANHAMENTO
+// Relatórios
 $app->get('/acompanhamento', [AcompanhamentoController::class, 'exibir']);
-
-// ROTA PARA DOWNLOAD DO ANEXO (coloque perto das outras rotas)
+$app->get('/relatorios', [RelatorioController::class, 'listar']);
+$app->get('/relatorios/{nota_id}/visualizar', [RelatorioController::class, 'visualizar']);
 $app->get('/download-proposta/{nome_arquivo}', function ($request, $response, $args) {
     $nomeArquivo = $args['nome_arquivo'];
     $caminhoCompleto = __DIR__ . '/../storage/propostas/' . $nomeArquivo;
-
     if (!file_exists($caminhoCompleto) || !preg_match('/^[a-f0-9]+\.pdf$/', $nomeArquivo)) {
         $response->getBody()->write('Arquivo não encontrado ou inválido.');
         return $response->withStatus(404);
     }
-
     $response = $response->withHeader('Content-Type', 'application/pdf');
     $response = $response->withHeader('Content-Disposition', 'inline; filename="' . $nomeArquivo . '"');
     $response->getBody()->write(file_get_contents($caminhoCompleto));
     return $response;
 });
 
-// --- INÍCIO DAS ROTAS EDITAR FORNECEDORES ---
-$app->get('/fornecedores/{id}/editar', [FornecedorController::class, 'exibirFormularioEdicao']);
-$app->post('/fornecedores/{id}/editar', [FornecedorController::class, 'atualizar']);
-$app->post('/fornecedores/{id}/excluir', [FornecedorController::class, 'excluir']);
-
-// --- FIM DAS ROTA DE EDITAR E EXCLUIR FORNECEDORES ---
-
-// --- INÍCIO DAS ROTAS DE IMPORTAÇÃO ---
-$app->get('/fornecedores/importar', [FornecedorController::class, 'exibirFormularioImportacao']);
-$app->post('/fornecedores/importar', [FornecedorController::class, 'processarImportacao']);
-// --- FIM ---
-
-// --- INÍCIO DA NOVA ROTA PARA O MODELO ---
-$app->get('/fornecedores/modelo-planilha', [FornecedorController::class, 'gerarModeloPlanilha']);
-// --- FIM DA NOVA ROTA ---
-
-// ROTA PARA SALVAR JUSTIFICATIVAS DE EXCEPCIONALIDADE
-$app->post('/processos/{id}/salvar-justificativas', [AnaliseController::class, 'salvarJustificativasProcesso']);
-
-// --- INÍCIO DA NOVA ROTA DE RELATÓRIO ---
-$app->get('/processos/{id}/relatorio', [RelatorioController::class, 'gerarRelatorio']);
-// --- FIM DA NOVA ROTA ---
-
-// --- INÍCIO DAS NOVAS ROTAS DE COTAÇÃO RÁPIDA ---
-$app->get('/cotacao-rapida', [CotacaoRapidaController::class, 'exibirFormulario']);
+// APIs (JSON)
+$app->post('/api/painel-de-precos', [PrecoController::class, 'buscarPainelDePrecos']);
+$app->post('/api/processos/{processo_id}/itens/{item_id}/precos/lote', [PrecoController::class, 'criarLote']);
+$app->post('/api/processos/{processo_id}/itens/{item_id}/pesquisar-orgaos', [PrecoController::class, 'pesquisarContratacoesSimilares']);
+$app->get('/api/fornecedores', [FornecedorController::class, 'listarJson']);
+$app->get('/api/fornecedores/ramos-atividade', [FornecedorController::class, 'listarRamosAtividade']);
+$app->get('/api/fornecedores/por-ramo', [FornecedorController::class, 'listarPorRamo']);
 $app->post('/api/cotacao-rapida/buscar', [CotacaoRapidaController::class, 'buscarPrecos']);
-// --- FIM DAS NOVAS ROTAS ---
-
-// ROTA PARA LISTAR RELATÓRIOS
-$app->get('/relatorios', [RelatorioController::class, 'listar']);
-// fim das rotas de relatório
-
-// ROTA PARA SALVAR COTAÇÃO RÁPIDA
 $app->post('/api/cotacao-rapida/salvar-relatorio', [CotacaoRapidaController::class, 'salvarAnalise']);
 
-// ROTA PARA VISUALIZAR RELATÓRIO DE COTAÇÃO RÁPIDA
-$app->get('/relatorios/{nota_id}/visualizar', [RelatorioController::class, 'visualizar']);
 
-// --- INÍCIO DA NOVA ROTA PARA O MODELO ---
-$app->get('/cotacao-rapida/modelo-planilha', [CotacaoRapidaController::class, 'gerarModeloPlanilha']);
-// --- FIM DA NOVA ROTA ---
-
+// 4. Execução da Aplicação (DEVE SER A ÚLTIMA LINHA)
 $app->run();
