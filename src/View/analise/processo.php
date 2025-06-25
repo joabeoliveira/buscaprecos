@@ -18,15 +18,24 @@
         <?php unset($_SESSION['flash']); ?>
     <?php endif; ?>
 
-    <?php foreach($itensComAnalise as $analise): 
+    <?php foreach($itensComAnalise as $analise):
         $item = $analise['item'];
         $precos = $analise['precos'];
         $estatisticas = $analise['estatisticas'];
         $alertaAmostra = $analise['alerta_amostra'] ?? false; // Pega a flag do controller
     ?>
-    <div class="card mb-5 shadow-sm">
-        <div class="card-header bg-light">
-            <h4 class="mb-0">Item <?= htmlspecialchars($item['numero_item']) ?>: <?= htmlspecialchars($item['descricao']) ?></h4>
+    <?php
+    // ADIÇÃO: Verificação para garantir que $item e $item['id'] não são nulos
+    if (!empty($item) && isset($item['id']) && isset($item['status_analise'])) :
+        // Aplica a classe 'item-analisado' se o status for 'analisado'
+        $card_class = ($item['status_analise'] == 'analisado') ? 'item-analisado' : '';
+    ?>
+    <div class="card mb-5 shadow-sm <?= $card_class ?> item-card-container"> <div class="card-header bg-light">
+            <h4 class="mb-0">Item <?= htmlspecialchars($item['numero_item']) ?>: <?= htmlspecialchars($item['descricao']) ?>
+                <?php if ($item['status_analise'] == 'analisado'): ?>
+                    <span class="badge bg-success ms-2"><i class="bi bi-check-circle-fill"></i> Analisado</span>
+                <?php endif; ?>
+            </h4>
         </div>
         <div class="card-body p-4">
             <h6>Estatísticas da Cesta de Preços Válida</h6>
@@ -104,7 +113,12 @@
                 </table>
             </div>
 
-            <form action="/processos/<?= $processo['id'] ?>/itens/<?= $item['id'] ?>/salvar-analise" method="POST">
+            <form 
+                id="form-analise-item-<?= $item['id'] ?>" 
+                class="analise-item-form" 
+                action="/processos/<?= $processo['id'] ?>/itens/<?= $item['id'] ?>/analise/salvar" 
+                method="POST"
+            >
                 
                 <?php if ($alertaAmostra): ?>
                     <div class="alert alert-warning mt-4" role="alert">
@@ -133,8 +147,7 @@
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="metodologia_estimativa" id="metodoMediana_<?= $item['id'] ?>" value="Mediana" <?= ($item['metodologia_estimativa'] ?? '') == 'Mediana' ? 'checked' : '' ?> required>
-                                <label class="form-check-label" for="metodoMediana_<?= $item['id'] ?>">
-                                    Usar a Mediana (R$ <?= number_format($estatisticas['mediana'], 2, ',', '.') ?>)
+                                <label class="form-check-label" for="metodoMediana_<?= $item['id'] ?>"> Usar a Mediana (R$ <?= number_format($estatisticas['mediana'], 2, ',', '.') ?>)
                                 </label>
                             </div>
                             <div class="form-check">
@@ -165,6 +178,10 @@
             </form>
         </div>
     </div>
+    <?php
+    // FECHA A VERIFICAÇÃO 'if (!empty($item) && isset($item['id']))'
+    endif; 
+    ?>
     <?php endforeach; ?>
 
     <div class="modal fade" id="modalDesconsiderar" tabindex="-1" aria-labelledby="modalDesconsiderarLabel" aria-hidden="true">

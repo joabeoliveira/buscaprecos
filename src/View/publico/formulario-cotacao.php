@@ -87,7 +87,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <<?php foreach ($itens ?? [] as $item): ?>
+                            <?php foreach ($itens ?? [] as $item): ?>
                         <tr>
                             <td><?= htmlspecialchars($item['descricao']) ?></td>
                             

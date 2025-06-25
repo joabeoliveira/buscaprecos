@@ -11,6 +11,7 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/catmat-search/style.css">
     <link rel="stylesheet" href="/css/dashboard.css">
 
@@ -123,6 +124,143 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
     <script src="/js/cotacao-rapida.js"></script> </body>
     <script src="https://unpkg.com/read-excel-file@5.7.1/bundle/read-excel-file.min.js"></script>
 
+
+    <button id="open-chat">
+    <i class="fas fa-robot" style="font-size: 24px;"></i>
+</button>
+
+<div id="chatbot-container" style="display: none;">
+    <div id="chat-header">
+        Chatbot Buscapreços AI
+        <button id="close-button"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="chat-messages"></div>
+    <div id="chat-input-container">
+        <input type="text" id="user-input" placeholder="Digite sua mensagem...">
+        <button id="send-button">Enviar</button>
+    </div>
+</div>
+
+<script>
+    // Configurações
+    const INACTIVITY_TIME = 30000; // 30 segundos
+    const WEBHOOK_URL = 'https://n8n-n8n.yg64ke.easypanel.host/webhook/chatbotBP'; // URL do seu webhook
+
+    // Elementos do DOM
+    const chatContainer = document.getElementById('chatbot-container');
+    const openChatBtn = document.getElementById('open-chat');
+    const closeButton = document.getElementById('close-button');
+    const chatMessages = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+
+    // Controle de tempo de inatividade
+    let inactivityTimer;
+
+    // Event Listeners
+    openChatBtn.addEventListener('click', openChat);
+    closeButton.addEventListener('click', closeChat);
+    userInput.addEventListener('keypress', (e) => e.key === 'Enter' && sendMessage());
+    sendButton.addEventListener('click', sendMessage);
+    document.addEventListener('mousemove', resetInactivityTimer);
+    document.addEventListener('keypress', resetInactivityTimer);
+
+    // Funções principais
+    function openChat() {
+        chatContainer.style.display = 'flex';
+        openChatBtn.style.display = 'none';
+        resetInactivityTimer();
+        userInput.focus();
+    }
+
+    function closeChat() {
+        chatContainer.style.display = 'none';
+        openChatBtn.style.display = 'block';
+        clearTimeout(inactivityTimer);
+    }
+
+    function resetInactivityTimer() {
+        if (chatContainer.style.display === 'none') return;
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(closeChat, INACTIVITY_TIME);
+    }
+
+    async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        addMessage(message, 'user');
+        userInput.value = '';
+        resetInactivityTimer();
+
+        // Mostra indicador de "digitando"
+        const typingIndicator = createTypingIndicator();
+        chatMessages.appendChild(typingIndicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        try {
+            const response = await fetch(WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chatInput: message }),
+            });
+
+            // Remove o indicador
+            chatMessages.removeChild(typingIndicator);
+
+            // Processa resposta
+            const responseText = await response.text();
+            let botReply = processResponse(responseText);
+            addMessage(botReply, 'bot');
+        } catch (error) {
+            chatMessages.removeChild(typingIndicator);
+            addMessage("Erro ao conectar com o chatbot. Tente novamente.", 'bot');
+            console.error('Erro:', error);
+        }
+    }
+
+    function processResponse(responseText) {
+        try {
+            const data = JSON.parse(responseText);
+            return data.response || data.message || responseText;
+        } catch {
+            return responseText;
+        }
+    }
+
+    function addMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+
+        if (sender === 'bot') {
+            messageDiv.innerHTML = `
+                <div class="bot-icon"><i class="fas fa-robot"></i></div>
+                <div class="message-content">${text}</div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="message-content">${text}</div>
+            `;
+        }
+
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function createTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message';
+        typingDiv.innerHTML = `
+            <div class="bot-icon"><i class="fas fa-robot"></i></div>
+            <div class="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
+        `;
+        return typingDiv;
+    }
+</script>
 
 </body>
 </html>

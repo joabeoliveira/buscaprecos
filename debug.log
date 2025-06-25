@@ -1,0 +1,23 @@
+Timestamp: 2025-06-25 20:37:07
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 1
+            [1] => 2
+            [2] => 3
+            [3] => 4
+            [4] => 5
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Entrega em 15 dias após empenho
+    [justificativa_fornecedores] => Pertence ao ramo relacionado ao escopo da aquisição
+)
+
+---

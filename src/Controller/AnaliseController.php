@@ -26,6 +26,7 @@ class AnaliseController
         $sql = "SELECT 
                     i.id as item_id, i.numero_item, i.descricao, i.unidade_medida, i.catmat_catser, i.quantidade,
                     i.valor_estimado, i.metodologia_estimativa, i.justificativa_estimativa, i.justificativa_excepcionalidade,
+                    i.status_analise, /* <--- GARANTE QUE ESTE CAMPO ESTÁ SENDO BUSCADO */
                     pc.id as preco_id, pc.fonte, pc.valor, pc.data_coleta, pc.fornecedor_nome, 
                     pc.status_analise, pc.justificativa_descarte
                 FROM itens i
@@ -54,6 +55,7 @@ class AnaliseController
                         'metodologia_estimativa' => $linha['metodologia_estimativa'],
                         'justificativa_estimativa' => $linha['justificativa_estimativa'],
                         'justificativa_excepcionalidade' => $linha['justificativa_excepcionalidade'],
+                        'status_analise' => $linha['status_analise'] /* <--- GARANTE QUE ESTE CAMPO ESTÁ SENDO PASSADO */
                     ],
                     'precos' => []
                 ];
@@ -101,6 +103,7 @@ class AnaliseController
         $response->getBody()->write($view);
         return $response;
     }
+
     /**
      * Função auxiliar para calcular as estatísticas de um conjunto de preços.
      */
@@ -144,7 +147,7 @@ public function salvarAnaliseItem($request, $response, $args)
     $justificativa = $dados['justificativa_estimativa'];
     $justificativaExcepcionalidade = $dados['justificativa_excepcionalidade'] ?? null;
     $valorEstimado = 0;
-    $redirectUrl = "/processos/{$processo_id}/analise";
+    // $redirectUrl = "/processos/{$processo_id}/analise"; // Esta linha não é mais necessária para resposta AJAX
 
     // Se a metodologia for manual, usa o valor do campo de texto.
     // Caso contrário, recalcula o valor com base nos preços "considerados".
@@ -186,11 +189,11 @@ public function salvarAnaliseItem($request, $response, $args)
         $medianaPainel = $estatisticasPainel['mediana'];
 
         if ($valorEstimado > $medianaPainel) {
-            $_SESSION['flash'] = [
-                'tipo' => 'danger', 
-                'mensagem' => 'Ajuste Bloqueado: Conforme a IN 65/2021, quando apenas preços do Painel são usados, o valor estimado (R$ ' . number_format($valorEstimado, 2, ',', '.') . ') não pode ser superior à mediana (R$ ' . number_format($medianaPainel, 2, ',', '.') . ').'
-            ];
-            return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+            // Retorna JSON de erro para o AJAX
+            return $response->withJson([
+                'status' => 'danger',
+                'message' => 'Ajuste Bloqueado: Conforme a IN 65/2021, quando apenas preços do Painel são usados, o valor estimado (R$ ' . number_format($valorEstimado, 2, ',', '.') . ') não pode ser superior à mediana (R$ ' . number_format($medianaPainel, 2, ',', '.') . ').'
+            ], 400); // 400 Bad Request
         }
     }
     // =======================================================
@@ -202,19 +205,20 @@ public function salvarAnaliseItem($request, $response, $args)
             SET valor_estimado = ?, 
                 metodologia_estimativa = ?, 
                 justificativa_estimativa = ?, 
-                justificativa_excepcionalidade = ? 
+                justificativa_excepcionalidade = ?,
+                status_analise = 'analisado' /* <-- ADICIONE ESTA LINHA */
             WHERE id = ?";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$valorEstimado, $metodologia, $justificativa, $justificativaExcepcionalidade, $item_id]);
 
-    $_SESSION['flash'] = [
-        'tipo' => 'success',
-        'mensagem' => 'Análise do item salva com sucesso!'
-    ];
-
-    // Redireciona de volta para a página de análise
-    return $response->withHeader('Location', $redirectUrl)->withStatus(302);
+    // SUBSTITUA a flash message e o redirecionamento por uma resposta JSON para AJAX:
+    return $response->withJson([
+        'status' => 'success',
+        'message' => 'Análise do item salva com sucesso!',
+        'item_id' => $item_id, // Retorna o ID para o JS saber qual item foi salvo
+        'new_status' => 'analisado' // Retorna o novo status para o JS atualizar a UI
+    ]);
 }
 
 /**

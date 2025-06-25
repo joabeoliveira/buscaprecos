@@ -99,7 +99,7 @@ class PrecoController
 
     // --- CORREÇÃO APLICADA AQUI ---
     // Monta a URL completa e correta da API do governo, incluindo todos os parâmetros.
-    $url = "https://dadosabertos.compras.gov.br/modulo-pesquisa-preco/1_consultarMaterial?pagina=1&tamanhoPagina=10&codigoItemCatalogo={$catmat}&dataResultado=true";
+    $url = "https://dadosabertos.compras.gov.br/modulo-pesquisa-preco/1_consultarMaterial?pagina=1&tamanhoPagina=20&codigoItemCatalogo={$catmat}&dataResultado=true";
 
     $client = new \GuzzleHttp\Client([
         'verify' => false // Adicionado para ignorar problemas de certificado SSL que podem ocorrer em ambientes locais
