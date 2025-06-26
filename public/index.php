@@ -77,7 +77,8 @@ $app->post('/processos/{processo_id}/itens/{item_id}/excluir', [ItemController::
 $app->get('/processos/{processo_id}/itens/importar', [ItemController::class, 'exibirFormularioImportacao']);
 $app->post('/processos/{processo_id}/itens/importar', [ItemController::class, 'processarImportacao']);
 $app->get('/processos/{processo_id}/itens/modelo-planilha', [ItemController::class, 'gerarModeloPlanilha']);
-$app->post('/processos/{processo_id}/itens/{item_id}/salvar-analise', [AnaliseController::class, 'salvarAnaliseItem']);
+$app->post('/processos/{processo_id}/itens/{item_id}/analise/salvar', [AnaliseController::class, 'salvarAnaliseItem']);
+
 
 // Preços e Cotações
 $app->get('/processos/{processo_id}/itens/{item_id}/pesquisar', [PrecoController::class, 'exibirPainel']);
@@ -105,6 +106,7 @@ $app->get('/cotacao-rapida/modelo-planilha', [CotacaoRapidaController::class, 'g
 // Relatórios
 $app->get('/acompanhamento', [AcompanhamentoController::class, 'exibir']);
 $app->get('/relatorios', [RelatorioController::class, 'listar']);
+$app->get('/processos/{id}/relatorio', [RelatorioController::class, 'gerarRelatorio']);
 $app->get('/relatorios/{nota_id}/visualizar', [RelatorioController::class, 'visualizar']);
 $app->get('/download-proposta/{nome_arquivo}', function ($request, $response, $args) {
     $nomeArquivo = $args['nome_arquivo'];

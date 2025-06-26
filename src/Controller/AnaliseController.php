@@ -138,87 +138,81 @@ class AnaliseController
 
 public function salvarAnaliseItem($request, $response, $args)
 {
-    $processo_id = $args['processo_id'];
-    $item_id = $args['item_id'];
-    $dados = $request->getParsedBody();
+    // Adiciona este cabeçalho para garantir que a resposta seja sempre JSON
+    $response = $response->withHeader('Content-Type', 'application/json');
     $pdo = \getDbConnection();
-    
-    $metodologia = $dados['metodologia_estimativa'];
-    $justificativa = $dados['justificativa_estimativa'];
-    $justificativaExcepcionalidade = $dados['justificativa_excepcionalidade'] ?? null;
-    $valorEstimado = 0;
-    // $redirectUrl = "/processos/{$processo_id}/analise"; // Esta linha não é mais necessária para resposta AJAX
 
-    // Se a metodologia for manual, usa o valor do campo de texto.
-    // Caso contrário, recalcula o valor com base nos preços "considerados".
-    if ($metodologia === 'Manual') {
-        $valorEstimado = (float)($dados['valor_manual'] ?? 0);
-    } else {
-        $stmt = $pdo->prepare("SELECT valor FROM precos_coletados WHERE item_id = ? AND status_analise = 'considerado'");
-        $stmt->execute([$item_id]);
-        $precosConsiderados = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-        
-        $estatisticas = $this->calcularEstatisticas($precosConsiderados);
-        
-        switch ($metodologia) {
-            case 'Média':
-                $valorEstimado = $estatisticas['media'];
-                break;
-            case 'Mediana':
-                $valorEstimado = $estatisticas['mediana'];
-                break;
-            case 'Menor Valor':
-                $valorEstimado = $estatisticas['minimo'];
-                break;
-        }
-    }
+    try {
+        $item_id = $args['item_id'];
+        $dados = $request->getParsedBody();
 
-    // =======================================================
-    // INÍCIO DA CORREÇÃO: TRAVA DE SEGURANÇA DO PAINEL DE PREÇOS (Art. 6º, § 6º)
-    // =======================================================
-    $stmtFontes = $pdo->prepare("SELECT DISTINCT fonte FROM precos_coletados WHERE item_id = ? AND status_analise = 'considerado'");
-    $stmtFontes->execute([$item_id]);
-    $fontesUsadas = $stmtFontes->fetchAll(\PDO::FETCH_COLUMN);
-
-    if (count($fontesUsadas) === 1 && $fontesUsadas[0] === 'Painel de Preços') {
-        $stmtPrecosPainel = $pdo->prepare("SELECT valor FROM precos_coletados WHERE item_id = ? AND status_analise = 'considerado'");
-        $stmtPrecosPainel->execute([$item_id]);
-        $precosPainel = $stmtPrecosPainel->fetchAll(\PDO::FETCH_ASSOC);
-        
-        $estatisticasPainel = $this->calcularEstatisticas($precosPainel);
-        $medianaPainel = $estatisticasPainel['mediana'];
-
-        if ($valorEstimado > $medianaPainel) {
-            // Retorna JSON de erro para o AJAX
+        if (!isset($dados['metodologia_estimativa']) || !isset($dados['justificativa_estimativa'])) {
             return $response->withJson([
-                'status' => 'danger',
-                'message' => 'Ajuste Bloqueado: Conforme a IN 65/2021, quando apenas preços do Painel são usados, o valor estimado (R$ ' . number_format($valorEstimado, 2, ',', '.') . ') não pode ser superior à mediana (R$ ' . number_format($medianaPainel, 2, ',', '.') . ').'
-            ], 400); // 400 Bad Request
+                'status' => 'error',
+                'message' => 'Dados do formulário incompletos. Faltando metodologia ou justificativa.'
+            ], 400);
         }
-    }
-    // =======================================================
-    // FIM DA CORREÇÃO
-    // =======================================================
-    
-    // Salva os dados no banco, incluindo a nova justificativa de excepcionalidade
-    $sql = "UPDATE itens 
-            SET valor_estimado = ?, 
-                metodologia_estimativa = ?, 
-                justificativa_estimativa = ?, 
-                justificativa_excepcionalidade = ?,
-                status_analise = 'analisado' /* <-- ADICIONE ESTA LINHA */
-            WHERE id = ?";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$valorEstimado, $metodologia, $justificativa, $justificativaExcepcionalidade, $item_id]);
 
-    // SUBSTITUA a flash message e o redirecionamento por uma resposta JSON para AJAX:
-    return $response->withJson([
-        'status' => 'success',
-        'message' => 'Análise do item salva com sucesso!',
-        'item_id' => $item_id, // Retorna o ID para o JS saber qual item foi salvo
-        'new_status' => 'analisado' // Retorna o novo status para o JS atualizar a UI
-    ]);
+        $metodologia = $dados['metodologia_estimativa'];
+        $justificativa = $dados['justificativa_estimativa'];
+        $justificativaExcepcionalidade = $dados['justificativa_excepcionalidade'] ?? null;
+        $valorEstimado = 0;
+
+        if ($metodologia === 'Manual') {
+            $valorEstimado = (float)($dados['valor_manual'] ?? 0);
+        } else {
+            $stmtPrecos = $pdo->prepare("SELECT valor FROM precos_coletados WHERE item_id = ? AND status_analise = 'considerado'");
+            $stmtPrecos->execute([$item_id]);
+            $precosConsiderados = $stmtPrecos->fetchAll(\PDO::FETCH_ASSOC);
+            $estatisticas = $this->calcularEstatisticas($precosConsiderados);
+            
+            if ($estatisticas['total'] > 0) {
+                switch ($metodologia) {
+                    case 'Média':
+                        $valorEstimado = $estatisticas['media'];
+                        break;
+                    case 'Mediana':
+                        $valorEstimado = $estatisticas['mediana'];
+                        break;
+                    case 'Menor Valor':
+                        $valorEstimado = $estatisticas['minimo'];
+                        break;
+                }
+            }
+        }
+        
+        $sql = "UPDATE itens SET 
+                    valor_estimado = ?, 
+                    metodologia_estimativa = ?, 
+                    justificativa_estimativa = ?, 
+                    justificativa_excepcionalidade = ?,
+                    status_analise = 'analisado'
+                WHERE id = ?";
+        
+        $stmt = $pdo->prepare($sql);
+        
+        $stmt->execute([
+            $valorEstimado, 
+            $metodologia, 
+            $justificativa, 
+            $justificativaExcepcionalidade, 
+            $item_id
+        ]);
+
+        return $response->withJson([
+            'status' => 'success',
+            'message' => 'Análise do item salva com sucesso!',
+            'item_id' => $item_id,
+            'new_status' => 'analisado'
+        ]);
+
+    } catch (\Throwable $e) {
+        error_log("ERRO FATAL EM salvarAnaliseItem: " . $e->getMessage());
+        return $response->withJson([
+            'status' => 'error',
+            'message' => 'ERRO INTERNO NO SERVIDOR: ' . $e->getMessage()
+        ], 500);
+    }
 }
 
 /**

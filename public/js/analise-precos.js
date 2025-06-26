@@ -73,7 +73,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Marcar visualmente o item como analisado (sem recarregar a página)
                     const itemCard = form.closest('.item-card-container'); // O container do item
                     if (itemCard) {
-                        itemCard.classList.add('item-analisado'); // Adicione uma classe CSS para estilos visuais
+                        itemCard.classList.add('item-analisado'); 
+                        
+                        const titleElement = itemCard.querySelector('h4'); // Encontra o título do card
+                        if (titleElement) {
+                            // Garante que não vai adicionar múltiplos badges
+                            if (!titleElement.querySelector('.badge')) { 
+                                const successBadge = document.createElement('span');
+                                successBadge.className = 'badge bg-success ms-2';
+                                successBadge.innerHTML = '<i class="bi bi-check-circle-fill"></i> Analisado';
+                                titleElement.appendChild(successBadge);
+                            }
+                        }
+
                         // Remover qualquer mensagem de erro anterior, se houver
                         const existingError = itemCard.querySelector('.alert-danger');
                         if (existingError) {
