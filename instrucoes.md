@@ -387,7 +387,9 @@ em 22/06
       em 23/06
 
     9) Implementação do módulo de autenticação e usuários ok
-    10) Implementação de recuperação de senha 
+    10) Implementação de recuperação de senha pendente
+    11) Implementado chatbot, visualização do item analisado na mesa de análise de itens
+    12) 
  
 
 
