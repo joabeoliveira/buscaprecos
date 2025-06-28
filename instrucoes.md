@@ -390,6 +390,11 @@ em 22/06
     10) Implementação de recuperação de senha pendente
     11) Implementado chatbot, visualização do item analisado na mesa de análise de itens
     12) 
+
+    em 28/06
+    13) inclusão de imagem no background do login ok
+    14) implementação de autocomplete e operadores no busca inteligente e catmat com descrição automática
+    
  
 
 

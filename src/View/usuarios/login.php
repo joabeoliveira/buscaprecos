@@ -17,13 +17,23 @@ if (session_status() === PHP_SESSION_NONE) {
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: #f0f2f5;
+            
+            /* --- Início da Modificação --- */
+            background-image: url('/img/background-login3.jpg'); /* Caminho para a sua imagem */
+            background-size: cover; /* Faz a imagem cobrir toda a tela */
+            background-position: center; /* Centraliza a imagem */
+            background-repeat: no-repeat; /* Evita que a imagem se repita */
+            /* --- Fim da Modificação --- */
         }
         .login-card {
             max-width: 420px;
             width: 100%;
             border: none;
             border-radius: 0.75rem;
+            
+            /* Efeito opcional para destacar o formulário do fundo */
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px); /* Efeito de desfoque no fundo do card */
         }
     </style>
 </head>

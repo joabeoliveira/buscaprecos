@@ -30,14 +30,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Função para processar a query e extrair termos com operadores
+    function processarQuery(query) {
+        // Remove espaços extras e divide em termos
+        const termos = query.trim().split(/\s+/);
+        
+        // Separa termos normais e termos com operador +
+        const termosNormais = [];
+        const termosAnd = [];
+        
+        for (let i = 0; i < termos.length; i++) {
+            if (termos[i] === '+' && i < termos.length - 1) {
+                // Pega o próximo termo como parte de AND
+                termosAnd.push(termos[i + 1]);
+                i++; // Pula o próximo termo pois já foi processado
+            } else if (termos[i] !== '+') {
+                termosNormais.push(termos[i]);
+            }
+        }
+        
+        return {
+            termosNormais,
+            termosAnd
+        };
+    }
+
     async function buscarSugestoes(query) {
         if (query.length < 2) {
             listaSugestoes.innerHTML = '';
             return;
         }
 
+        // Processa a query para extrair termos com operadores
+        const { termosNormais, termosAnd } = processarQuery(query);
+        
+        // Se não houver termos normais (apenas operadores), não faz a busca
+        if (termosNormais.length === 0) {
+            listaSugestoes.innerHTML = '<li class="list-group-item">Digite pelo menos um termo de busca.</li>';
+            return;
+        }
+
+        // Monta o texto de busca para a função RPC
+        const textoBusca = termosNormais.join(' ');
+        
+        // Chama a função RPC no Supabase
         const { data, error } = await supabase.rpc('buscar_itens_similares', {
-            texto_busca: query,
+            texto_busca: textoBusca,
             limite: 20,
             offset_val: 0,
         });
@@ -53,8 +91,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Filtra os resultados se houver termos AND
+        let resultadosFiltrados = data;
+        if (termosAnd.length > 0) {
+            resultadosFiltrados = data.filter(item => {
+                const descricaoLower = item.descricao.toLowerCase();
+                return termosAnd.every(termo => 
+                    descricaoLower.includes(termo.toLowerCase())
+                );
+            });
+        }
+
+        if (resultadosFiltrados.length === 0) {
+            listaSugestoes.innerHTML = '<li class="list-group-item">Nenhum item encontrado com todos os termos especificados.</li>';
+            return;
+        }
+
         listaSugestoes.innerHTML = '';
-        data.forEach(item => {
+        resultadosFiltrados.forEach(item => {
             const li = document.createElement('li');
             li.classList.add('list-group-item', 'd-flex', 'flex-column');
             li.style.cursor = 'pointer';

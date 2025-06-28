@@ -193,3 +193,46 @@ $totalItens = $totalItens ?? count($itens); // Garante que $totalItens sempre te
         </div>
     </div>
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const catmatInput = document.getElementById('catmat_input');
+    const descricaoInput = document.getElementById('descricao_input');
+    
+    if (catmatInput && descricaoInput) {
+        let timeoutId;
+        
+        catmatInput.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            
+            // Aguarda 500ms após a última digitação para fazer a busca
+            timeoutId = setTimeout(() => {
+                const codigo = catmatInput.value.trim();
+                
+                if (codigo.length > 0) {
+                    buscarDescricaoPorCodigo(codigo);
+                }
+            }, 500);
+        });
+    }
+    
+    async function buscarDescricaoPorCodigo(codigo) {
+        try {
+            const response = await fetch(`/api/buscar-descricao?codigo=${encodeURIComponent(codigo)}`);
+            
+            if (!response.ok) {
+                throw new Error('Erro na requisição');
+            }
+            
+            const data = await response.json();
+            
+            if (data.descricao) {
+                document.getElementById('descricao_input').value = data.descricao;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar descrição:', error);
+        }
+    }
+});
+</script>
