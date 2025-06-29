@@ -396,7 +396,7 @@ em 22/06
     14) implementação de autocomplete e operadores no busca inteligente e catmat com descrição automática ok
 
     em 29/06
-    15) correção da visualização da nota técnica 
+    15) correção da visualização da nota técnica ok
     16) implementação de usuários
 
     

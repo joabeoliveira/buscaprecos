@@ -167,4 +167,161 @@ class UsuarioController
         }
         return [true, null];
     }
+
+    // --- INÍCIO DA FUNCIONALIDADE DE GERENCIAMENTO DE USUÁRIOS ---
+
+    /**
+     * Lista todos os usuários cadastrados.
+     */
+    public function listar($request, $response, $args)
+    {
+        $pdo = \getDbConnection();
+        $stmt = $pdo->query("SELECT id, nome, email, role FROM usuarios ORDER BY nome ASC");
+        $usuarios = $stmt->fetchAll();
+
+        $tituloPagina = "Gerenciamento de Usuários";
+        // Aponta para a nova view que vamos criar
+        $paginaConteudo = __DIR__ . '/../View/usuarios/lista.php';
+
+        ob_start();
+        require __DIR__ . '/../View/layout/main.php';
+        $view = ob_get_clean();
+        $response->getBody()->write($view);
+        return $response;
+    }
+
+    /**
+     * Exibe o formulário para criar um novo usuário.
+     */
+    public function exibirFormularioCriacao($request, $response, $args)
+    {
+        $tituloPagina = "Adicionar Novo Usuário";
+        $paginaConteudo = __DIR__ . '/../View/usuarios/formulario.php'; // View de formulário que vamos criar
+
+        ob_start();
+        require __DIR__ . '/../View/layout/main.php';
+        $view = ob_get_clean();
+        $response->getBody()->write($view);
+        return $response;
+    }
+
+    /**
+     * Processa os dados do formulário e cria um novo usuário no banco.
+     */
+    public function criar($request, $response, $args)
+    {
+        $dados = $request->getParsedBody();
+
+        // Validação básica
+        if (empty($dados['nome']) || empty($dados['email']) || empty($dados['senha'])) {
+            // Em uma aplicação real, usaríamos flash messages para erros
+            die("Nome, e-mail e senha são obrigatórios.");
+        }
+        if ($dados['senha'] !== $dados['senha_confirm']) {
+            die("As senhas não conferem.");
+        }
+
+        $senhaHash = password_hash($dados['senha'], PASSWORD_DEFAULT);
+        $role = $dados['role'] ?? 'user';
+
+        $sql = "INSERT INTO usuarios (nome, email, senha, role) VALUES (?, ?, ?, ?)";
+        $pdo = \getDbConnection();
+        
+        try {
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$dados['nome'], $dados['email'], $senhaHash, $role]);
+        } catch (\PDOException $e) {
+            if ($e->getCode() == 23000) { // Erro de violação de chave única (e-mail duplicado)
+                die("Erro: O e-mail informado já está cadastrado.");
+            }
+            throw $e;
+        }
+
+        return $response->withHeader('Location', '/usuarios')->withStatus(302);
+    }
+
+    /**
+     * Exclui um usuário do banco de dados.
+     */
+    public function excluir($request, $response, $args)
+    {
+        $id = $args['id'];
+
+        // Impede que o usuário se auto-exclua
+        if ($id == $_SESSION['usuario_id']) {
+            die("Você não pode excluir o seu próprio usuário.");
+        }
+
+        $pdo = \getDbConnection();
+        $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
+        $stmt->execute([$id]);
+
+        return $response->withHeader('Location', '/usuarios')->withStatus(302);
+    }
+
+    /**
+     * Exibe o formulário de edição para um usuário específico.
+     */
+    public function exibirFormularioEdicao($request, $response, $args)
+    {
+        $id = $args['id'];
+        $pdo = \getDbConnection();
+        $stmt = $pdo->prepare("SELECT id, nome, email, role FROM usuarios WHERE id = ?");
+        $stmt->execute([$id]);
+        $usuario = $stmt->fetch();
+
+        if (!$usuario) {
+            // Lidar com usuário não encontrado
+            return $response->withHeader('Location', '/usuarios')->withStatus(404);
+        }
+
+        $tituloPagina = "Editar Usuário";
+        // Aponta para a nova view de edição que vamos criar
+        $paginaConteudo = __DIR__ . '/../View/usuarios/formulario_edicao.php';
+
+        ob_start();
+        require __DIR__ . '/../View/layout/main.php';
+        $view = ob_get_clean();
+        $response->getBody()->write($view);
+        return $response;
+    }
+
+    /**
+     * Processa os dados do formulário e atualiza um usuário no banco.
+     */
+    public function atualizar($request, $response, $args)
+    {
+        $id = $args['id'];
+        $dados = $request->getParsedBody();
+
+        $nome = $dados['nome'];
+        $email = $dados['email'];
+        $role = $dados['role'];
+        $senha = $dados['senha'];
+
+        $sql = "UPDATE usuarios SET nome = ?, email = ?, role = ?";
+        $params = [$nome, $email, $role];
+
+        // Se o campo de senha não estiver vazio, atualiza a senha
+        if (!empty($senha)) {
+            if ($senha !== $dados['senha_confirm']) {
+                die("As senhas não conferem.");
+            }
+            $sql .= ", senha = ?";
+            $params[] = password_hash($senha, PASSWORD_DEFAULT);
+        }
+
+        $sql .= " WHERE id = ?";
+        $params[] = $id;
+
+        $pdo = \getDbConnection();
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        return $response->withHeader('Location', '/usuarios')->withStatus(302);
+    }
+
+    // --- FIM DA FUNCIONALIDADE DE GERENCIAMENTO DE USUÁRIOS ---
+
+
 }

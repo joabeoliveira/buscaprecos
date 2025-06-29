@@ -133,4 +133,13 @@ $app->post('/api/cotacao-rapida/salvar-relatorio', [CotacaoRapidaController::cla
 
 
 // 4. Execução da Aplicação (DEVE SER A ÚLTIMA LINHA)
+
+// Rotas para Gerenciamento de Usuários
+$app->get('/usuarios', [UsuarioController::class, 'listar']);
+$app->get('/usuarios/novo', [UsuarioController::class, 'exibirFormularioCriacao']);
+$app->post('/usuarios/novo', [UsuarioController::class, 'criar']);
+$app->get('/usuarios/{id}/editar', [UsuarioController::class, 'exibirFormularioEdicao']);
+$app->post('/usuarios/{id}/editar', [UsuarioController::class, 'atualizar']);
+$app->post('/usuarios/{id}/excluir', [UsuarioController::class, 'excluir']);
+
 $app->run();

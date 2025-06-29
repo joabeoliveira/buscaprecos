@@ -76,10 +76,11 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
                 </li>
 
                 <li>
-                    <a href="#" class="nav-link text-white">
+                    <a href="/usuarios" class="nav-link <?= str_starts_with($currentPath, '/usuarios') ? 'active' : 'text-white' ?>">
                         <i class="bi bi-people me-2"></i> Usuários
                     </a>
                 </li>
+                
                 <li>
                     <a href="#" class="nav-link text-white">
                         <i class="bi bi-gear me-2"></i> Configurações
