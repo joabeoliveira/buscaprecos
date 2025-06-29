@@ -197,41 +197,59 @@ $totalItens = $totalItens ?? count($itens); // Garante que $totalItens sempre te
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // Certifique-se de que a biblioteca Supabase foi carregada no <head>
+    if (typeof window.supabase === 'undefined') {
+        console.error('Biblioteca do Supabase não carregada! Verifique o <script> no <head>.');
+        return;
+    }
+
+    const supabaseUrl = 'https://abuowxogoiqzbmnvszys.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFidW93eG9nb2lxemJtbnZzenlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNTcwNTcsImV4cCI6MjA2NDgzMzA1N30.t6b1vtcZhGfOfibwdWKLDUJq2BoRegH5s6P5_OvRwz8';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
     const catmatInput = document.getElementById('catmat_input');
     const descricaoInput = document.getElementById('descricao_input');
     
-    if (catmatInput && descricaoInput) {
-        let timeoutId;
-        
-        catmatInput.addEventListener('input', function() {
-            clearTimeout(timeoutId);
-            
-            // Aguarda 500ms após a última digitação para fazer a busca
-            timeoutId = setTimeout(() => {
-                const codigo = catmatInput.value.trim();
-                
-                if (codigo.length > 0) {
-                    buscarDescricaoPorCodigo(codigo);
-                }
-            }, 500);
-        });
+    if (!catmatInput || !descricaoInput) {
+        return;
     }
+    
+    let timeoutId;
+    
+    catmatInput.addEventListener('input', () => {
+        clearTimeout(timeoutId);
+        
+        timeoutId = setTimeout(() => {
+            const codigo = catmatInput.value.trim();
+            if (codigo.length > 0) {
+                buscarDescricaoPorCodigo(codigo);
+            } else {
+                descricaoInput.value = '';
+            }
+        }, 500);
+    });
     
     async function buscarDescricaoPorCodigo(codigo) {
         try {
-            const response = await fetch(`/api/buscar-descricao?codigo=${encodeURIComponent(codigo)}`);
-            
-            if (!response.ok) {
-                throw new Error('Erro na requisição');
+            // Lembre-se de ajustar os nomes da sua tabela e colunas
+            const { data, error } = await supabase
+                .from('catalogo_materiais') 
+                .select('descricao')        
+                .eq('codigo_catmat', codigo) 
+                .limit(1)
+                .single();
+
+            if (error && error.code !== 'PGRST116') {
+                throw new Error(error.message);
             }
             
-            const data = await response.json();
-            
-            if (data.descricao) {
-                document.getElementById('descricao_input').value = data.descricao;
+            if (data && data.descricao) {
+                descricaoInput.value = data.descricao;
             }
+
         } catch (error) {
-            console.error('Erro ao buscar descrição:', error);
+            console.error('Erro ao buscar descrição no Supabase:', error);
         }
     }
 });

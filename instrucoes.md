@@ -393,7 +393,12 @@ em 22/06
 
     em 28/06
     13) inclusão de imagem no background do login ok
-    14) implementação de autocomplete e operadores no busca inteligente e catmat com descrição automática
+    14) implementação de autocomplete e operadores no busca inteligente e catmat com descrição automática ok
+
+    em 29/06
+    15) correção da visualização da nota técnica  
+    16) implementação de usuários
+
     
  
 
