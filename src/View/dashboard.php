@@ -61,3 +61,34 @@
         </div>
     </div>
 </div>
+
+
+
+<div class="row mt-4">
+    <div class="col-lg-8 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Valor Total Estimado por Mês (Processos Finalizados)</div>
+            <div class="card-body">
+                <canvas id="graficoValorPorMes" data-dados='<?= json_encode($dadosValorPorMes) ?>'></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Taxa de Resposta de Fornecedores</div>
+            <div class="card-body">
+                <canvas id="graficoRespostasFornecedores" data-dados='<?= json_encode($dadosRespostasFornecedores) ?>'></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-12 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Distribuição de Processos por Região (UF)</div>
+            <div class="card-body">
+                <canvas id="graficoProcessosPorRegiao" data-dados='<?= json_encode($dadosProcessosPorRegiao) ?>'></canvas>
+            </div>
+        </div>
+    </div>
+</div>

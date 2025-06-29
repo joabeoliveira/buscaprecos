@@ -399,6 +399,8 @@ em 22/06
     15) correção da visualização da nota técnica ok
     16) implementação de usuários ok
     17) ajustes nas permissões de usuários ok
+    18) adição de novos gráficos
+    
 
     
  

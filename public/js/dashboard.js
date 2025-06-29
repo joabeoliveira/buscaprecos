@@ -61,4 +61,86 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- INÍCIO DOS NOVOS GRÁFICOS ---
+
+    // Gráfico de Valor por Mês (Linha)
+    const canvasValorMes = document.getElementById('graficoValorPorMes');
+    if (canvasValorMes) {
+        const dadosValor = JSON.parse(canvasValorMes.dataset.dados);
+        new Chart(canvasValorMes, {
+            type: 'line',
+            data: {
+                labels: dadosValor.map(d => d.mes),
+                datasets: [{
+                    label: 'Valor Total R$',
+                    data: dadosValor.map(d => d.valor_total),
+                    backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return 'R$ ' + value.toLocaleString('pt-BR');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Gráfico de Resposta de Fornecedores (Pizza)
+    const canvasRespostas = document.getElementById('graficoRespostasFornecedores');
+    if (canvasRespostas) {
+        const dadosRespostas = JSON.parse(canvasRespostas.dataset.dados);
+        new Chart(canvasRespostas, {
+            type: 'pie',
+            data: {
+                labels: dadosRespostas.map(d => d.status_calculado),
+                datasets: [{
+                    label: 'Solicitações',
+                    data: dadosRespostas.map(d => d.total),
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    }
+
+    // Gráfico de Processos por Região (Barras Horizontais)
+    const canvasRegiao = document.getElementById('graficoProcessosPorRegiao');
+    if (canvasRegiao) {
+        const dadosRegiao = JSON.parse(canvasRegiao.dataset.dados);
+        new Chart(canvasRegiao, {
+            type: 'bar',
+            data: {
+                labels: dadosRegiao.map(d => d.regiao),
+                datasets: [{
+                    label: 'Nº de Processos',
+                    data: dadosRegiao.map(d => d.total),
+                    backgroundColor: '#0dcaf0',
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        });
+    }
+
+    // --- FIM DOS NOVOS GRÁFICOS ---
+
 });
