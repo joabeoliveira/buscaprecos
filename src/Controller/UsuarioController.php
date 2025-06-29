@@ -28,6 +28,7 @@ class UsuarioController
         if ($usuario && password_verify($senha, $usuario['senha'])) {
             $_SESSION['usuario_id'] = $usuario['id'];
             $_SESSION['usuario_nome'] = $usuario['nome'];
+            $_SESSION['usuario_role'] = $usuario['role'];
             return $response->withHeader('Location', '/dashboard')->withStatus(302);
         }
         $_SESSION['flash_error'] = 'E-mail ou senha inválidos.';

@@ -68,25 +68,21 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
                         <i class="bi bi-lightning-charge-fill me-2"></i> Cotação Rápida
                     </a>
                 </li>
-
-                <li>
-                    <a href="/relatorios" class="nav-link <?= str_starts_with($currentPath, '/relatorios') ? 'active' : 'text-white' ?>">
-                        <i class="bi bi-collection-fill me-2"></i> Histórico de Relatórios
-                    </a>
-                </li>
-
-                <li>
-                    <a href="/usuarios" class="nav-link <?= str_starts_with($currentPath, '/usuarios') ? 'active' : 'text-white' ?>">
-                        <i class="bi bi-people me-2"></i> Usuários
-                    </a>
-                </li>
                 
-                <li>
-                    <a href="#" class="nav-link text-white">
-                        <i class="bi bi-gear me-2"></i> Configurações
-                    </a>
-                </li>
+                <?php if (isset($_SESSION['usuario_role']) && $_SESSION['usuario_role'] === 'admin'): ?>
+                    <li>
+                        <a href="/usuarios" class="nav-link <?= str_starts_with($currentPath, '/usuarios') ? 'active' : 'text-white' ?>">
+                            <i class="bi bi-people me-2"></i> Usuários
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link text-white">
+                            <i class="bi bi-gear me-2"></i> Configurações
+                        </a>
+                    </li>
+                <?php endif; ?>
             </ul>
+            
             <hr>
             <div>
                 <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">

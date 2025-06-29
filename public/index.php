@@ -35,6 +35,20 @@ $authMiddleware = function ($request, $handler) use ($app) {
 $app->add($authMiddleware);
 
 
+// Middleware de Verificação de Permissões
+$adminAuthMiddleware = function ($request, $handler) use ($app) {
+    // Se o usuário não for admin, redireciona para o dashboard
+    if (!isset($_SESSION['usuario_role']) || $_SESSION['usuario_role'] !== 'admin') {
+        $response = $app->getResponseFactory()->createResponse();
+        // Opcional: Adicionar uma mensagem de erro para o usuário
+        // $_SESSION['flash_error'] = 'Você não tem permissão para acessar esta página.';
+        return $response->withHeader('Location', '/dashboard')->withStatus(302);
+    }
+    // Se for admin, permite que a requisição continue
+    return $handler->handle($request);
+};
+
+
 // 3. Definição de TODAS as Rotas
 // Rotas Públicas (Login e Resposta de Cotação)
 $app->get('/login', [UsuarioController::class, 'exibirFormularioLogin']);
@@ -135,11 +149,15 @@ $app->post('/api/cotacao-rapida/salvar-relatorio', [CotacaoRapidaController::cla
 // 4. Execução da Aplicação (DEVE SER A ÚLTIMA LINHA)
 
 // Rotas para Gerenciamento de Usuários
-$app->get('/usuarios', [UsuarioController::class, 'listar']);
-$app->get('/usuarios/novo', [UsuarioController::class, 'exibirFormularioCriacao']);
-$app->post('/usuarios/novo', [UsuarioController::class, 'criar']);
-$app->get('/usuarios/{id}/editar', [UsuarioController::class, 'exibirFormularioEdicao']);
-$app->post('/usuarios/{id}/editar', [UsuarioController::class, 'atualizar']);
-$app->post('/usuarios/{id}/excluir', [UsuarioController::class, 'excluir']);
+// --- INÍCIO DO GRUPO DE ROTAS PROTEGIDAS PARA ADMIN ---
+$app->group('/usuarios', function ($group) {
+    $group->get('', [\Joabe\Buscaprecos\Controller\UsuarioController::class, 'listar']);
+    $group->get('/novo', [\Joabe\Buscaprecos\Controller\UsuarioController::class, 'exibirFormularioCriacao']);
+    $group->post('/novo', [\Joabe\Buscaprecos\Controller\UsuarioController::class, 'criar']);
+    $group->get('/{id}/editar', [\Joabe\Buscaprecos\Controller\UsuarioController::class, 'exibirFormularioEdicao']);
+    $group->post('/{id}/editar', [\Joabe\Buscaprecos\Controller\UsuarioController::class, 'atualizar']);
+    $group->post('/{id}/excluir', [\Joabe\Buscaprecos\Controller\UsuarioController::class, 'excluir']);
+})->add($adminAuthMiddleware); // Aplica o "porteiro" de admin a todo o grupo
+// --- FIM DO GRUPO DE ROTAS PROTEGIDAS ---
 
 $app->run();
