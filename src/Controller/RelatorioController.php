@@ -133,56 +133,122 @@ class RelatorioController
 
 
     public function visualizar($request, $response, $args)
-    {
-        $nota_id = $args['nota_id'];
-        $pdo = \getDbConnection();
-        $stmtNota = $pdo->prepare("SELECT * FROM notas_tecnicas WHERE id = ?");
-        $stmtNota->execute([$nota_id]);
-        $dadosNota = $stmtNota->fetch(\PDO::FETCH_ASSOC);
+{
+    $nota_id = $args['nota_id'];
+    $pdo = \getDbConnection();
+    $stmtNota = $pdo->prepare("SELECT * FROM notas_tecnicas WHERE id = ?");
+    $stmtNota->execute([$nota_id]);
+    $dadosNota = $stmtNota->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$dadosNota) {
-            $response->getBody()->write("Relatório não encontrado.");
-            return $response->withStatus(404);
-        }
-        
-        $html = '';
-        
-        if ($dadosNota['tipo'] === 'COTACAO_RAPIDA') {
-            $cotacao_rapida_id = $dadosNota['cotacao_rapida_id'];
-            
-            $stmtCotacao = $pdo->prepare("SELECT * FROM cotacoes_rapidas WHERE id = ?");
-            $stmtCotacao->execute([$cotacao_rapida_id]);
-            $dadosCotacao = $stmtCotacao->fetch(\PDO::FETCH_ASSOC);
-
-            $stmtItens = $pdo->prepare("SELECT * FROM cotacoes_rapidas_itens WHERE cotacao_rapida_id = ? ORDER BY id ASC");
-            $stmtItens->execute([$cotacao_rapida_id]);
-            $dadosItens = $stmtItens->fetchAll(\PDO::FETCH_ASSOC);
-
-            foreach ($dadosItens as $key => $item) {
-                $stmtPrecos = $pdo->prepare("SELECT * FROM cotacoes_rapidas_precos WHERE cotacao_rapida_item_id = ? ORDER BY preco_unitario ASC");
-                $stmtPrecos->execute([$item['id']]);
-                $dadosItens[$key]['precos'] = $stmtPrecos->fetchAll(\PDO::FETCH_ASSOC);
-            }
-
-            ob_start();
-            require __DIR__ . '/../View/relatorios/nota_tecnica_rapida.php';
-            $html = ob_get_clean();
-
-        } else { // 'PROCESSO'
-            // A lógica de geração do relatório de processo completo continua aqui...
-            // Por enquanto, vamos manter como estava.
-            $html = "<h1>Geração de relatório para Processo Completo.</h1>";
-        }
-
-        $options = new Options();
-        $options->set('isRemoteEnabled', true);
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-
-        $dompdf->stream("Relatorio_{$dadosNota['numero_nota']}_{$dadosNota['ano_nota']}.pdf", ["Attachment" => false]);
-        return $response;
+    if (!$dadosNota) {
+        $response->getBody()->write("Relatório não encontrado.");
+        return $response->withStatus(404);
     }
+    
+    $html = '';
+    
+    // Se o relatório for de COTAÇÃO RÁPIDA
+    if ($dadosNota['tipo'] === 'COTACAO_RAPIDA') {
+        $cotacao_rapida_id = $dadosNota['cotacao_rapida_id'];
+        
+        $stmtCotacao = $pdo->prepare("SELECT * FROM cotacoes_rapidas WHERE id = ?");
+        $stmtCotacao->execute([$cotacao_rapida_id]);
+        $dadosCotacao = $stmtCotacao->fetch(\PDO::FETCH_ASSOC);
+
+        $stmtItens = $pdo->prepare("SELECT * FROM cotacoes_rapidas_itens WHERE cotacao_rapida_id = ? ORDER BY id ASC");
+        $stmtItens->execute([$cotacao_rapida_id]);
+        $dadosItens = $stmtItens->fetchAll(\PDO::FETCH_ASSOC);
+
+        foreach ($dadosItens as $key => $item) {
+            $stmtPrecos = $pdo->prepare("SELECT * FROM cotacoes_rapidas_precos WHERE cotacao_rapida_item_id = ? ORDER BY preco_unitario ASC");
+            $stmtPrecos->execute([$item['id']]);
+            $dadosItens[$key]['precos'] = $stmtPrecos->fetchAll(\PDO::FETCH_ASSOC);
+        }
+
+        ob_start();
+        // Renderiza o template específico para cotação rápida
+        require __DIR__ . '/../View/relatorios/nota_tecnica_rapida.php';
+        $html = ob_get_clean();
+
+    } else { // --- INÍCIO DA CORREÇÃO: Lógica para relatório de PROCESSO COMPLETO ---
+        
+        $processo_id = $dadosNota['processo_id'];
+
+        // 1. Busca os dados gerais do processo
+        $stmtProcesso = $pdo->prepare("SELECT * FROM processos WHERE id = ?");
+        $stmtProcesso->execute([$processo_id]);
+        $dadosProcesso = $stmtProcesso->fetch(\PDO::FETCH_ASSOC);
+
+        // 2. Busca os itens e todos os seus preços coletados
+        $sqlItens = "SELECT i.*, pc.id as preco_id, pc.fonte, pc.valor, pc.data_coleta, pc.fornecedor_nome, pc.status_analise, pc.justificativa_descarte FROM itens i LEFT JOIN precos_coletados pc ON i.id = pc.item_id WHERE i.processo_id = ? ORDER BY i.numero_item ASC, pc.valor ASC";
+        $stmtItens = $pdo->prepare($sqlItens);
+        $stmtItens->execute([$processo_id]);
+        $resultados = $stmtItens->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Agrupa os preços por item
+        $dadosItens = [];
+        $precosDesconsiderados = [];
+        foreach ($resultados as $linha) {
+            $itemId = $linha['id'];
+            if (!isset($dadosItens[$itemId])) {
+                $dadosItens[$itemId] = $linha;
+                $dadosItens[$itemId]['precos'] = [];
+            }
+            if ($linha['preco_id']) {
+                $dadosItens[$itemId]['precos'][] = $linha;
+                if ($linha['status_analise'] === 'desconsiderado') {
+                    $precosDesconsiderados[] = $linha;
+                }
+            }
+        }
+
+        // 3. Busca informações de solicitações enviadas a fornecedores
+        $sqlSolicitacoes = "SELECT f.razao_social, lsf.status, ls.justificativa_fornecedores FROM lotes_solicitacao ls JOIN lotes_solicitacao_fornecedores lsf ON ls.id = lsf.lote_solicitacao_id JOIN fornecedores f ON lsf.fornecedor_id = f.id WHERE ls.processo_id = ?";
+        $stmtSolicitacoes = $pdo->prepare($sqlSolicitacoes);
+        $stmtSolicitacoes->execute([$processo_id]);
+        $dadosSolicitacoes = $stmtSolicitacoes->fetchAll(\PDO::FETCH_ASSOC);
+
+        // 4. Determina as fontes e incisos utilizados
+        $fontesUtilizadasBruto = [];
+        foreach ($dadosItens as $item) {
+            foreach ($item['precos'] as $preco) {
+                $fontesUtilizadasBruto[] = $preco['fonte'];
+            }
+        }
+        $mapaFontes = ['Painel de Preços' => 'I', 'Contratação Similar' => 'II', 'Site Especializado' => 'III', 'Pesquisa com Fornecedor' => 'IV', 'Nota Fiscal' => 'V'];
+        $incisosUtilizados = [];
+        foreach (array_unique($fontesUtilizadasBruto) as $fonte) {
+            if (isset($mapaFontes[$fonte])) {
+                $incisosUtilizados[] = $mapaFontes[$fonte];
+            }
+        }
+        sort($incisosUtilizados);
+        $priorizouOficiais = in_array('I', $incisosUtilizados) || in_array('II', $incisosUtilizados);
+        $dadosFontes = ['fontes_utilizadas' => $incisosUtilizados, 'priorizou_oficiais' => $priorizouOficiais];
+
+        // 5. Prepara as variáveis para o template da nota técnica
+        $novoNumero = $dadosNota['numero_nota'];
+        $anoAtual = $dadosNota['ano_nota'];
+
+        ob_start();
+        // Renderiza o template principal da nota técnica do processo
+        require __DIR__ . '/../View/relatorios/nota_tecnica.php';
+        $html = ob_get_clean();
+
+    } // --- FIM DA CORREÇÃO ---
+
+    // Gera o PDF com o HTML renderizado
+    $options = new Options();
+    $options->set('isRemoteEnabled', true);
+    $dompdf = new Dompdf($options);
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'portrait');
+    $dompdf->render();
+
+    // Exibe o PDF no navegador
+    $dompdf->stream("Relatorio_{$dadosNota['numero_nota']}_{$dadosNota['ano_nota']}.pdf", ["Attachment" => false]);
+    return $response;
+}
+
 
 }
