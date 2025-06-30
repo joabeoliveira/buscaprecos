@@ -25,12 +25,12 @@
             <div id="itens-container">
                 <div class="row item-row mb-3 align-items-center">
                     <div class="col-md-3">
-                        <label class="form-label"><strong>Código CATMAT/CATSER</strong></label>
-                        <input type="number" class="form-control" name="catmat[]" required>
+                        <label class="form-label"><strong>Código CATMAT</strong></label>
+                        <input type="number" class="form-control catmat-input" name="catmat[]" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Descrição do Item (Opcional)</label>
-                        <input type="text" class="form-control" name="descricao[]">
+                        <input type="text" class="form-control descricao-input" name="descricao[]">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label"><strong>Quantidade</strong></label>
@@ -127,12 +127,12 @@
 <template id="item-row-template">
     <div class="row item-row mb-3 align-items-center">
         <div class="col-md-3">
-            <label class="form-label"><strong>Código CATMAT/CATSER</strong></label>
-            <input type="number" class="form-control" name="catmat[]" required>
+            <label class="form-label"><strong>Código CATMAT</strong></label>
+            <input type="number" class="form-control catmat-input" name="catmat[]" required>
         </div>
         <div class="col-md-4">
             <label class="form-label">Descrição do Item (Opcional)</label>
-            <input type="text" class="form-control" name="descricao[]">
+            <input type="text" class="form-control descricao-input" name="descricao[]">
         </div>
         <div class="col-md-2">
             <label class="form-label"><strong>Quantidade</strong></label>
@@ -150,3 +150,112 @@
             </div>
     </div>
 </template>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Verifica se já existe uma instância do Supabase
+    if (window.supabaseClientInstance) {
+        console.warn('Instância do Supabase já existe. Reutilizando...');
+    } else {
+        // Configuração única do Supabase
+        const supabaseUrl = 'https://abuowxogoiqzbmnvszys.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFidW93eG9nb2lxemJtbnZzenlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkyNTcwNTcsImV4cCI6MjA2NDgzMzA1N30.t6b1vtcZhGfOfibwdWKLDUJq2BoRegH5s6P5_OvRwz8';
+        window.supabaseClientInstance = window.supabase.createClient(supabaseUrl, supabaseKey);
+    }
+
+    const supabase = window.supabaseClientInstance;
+    const itensContainer = document.getElementById('itens-container');
+    if (!itensContainer) return;
+
+    // Objeto para controlar as buscas
+    const buscaControl = {
+        timeout: null,
+        lastRequest: null,
+        delay: 1500, // Aumentamos o delay para 1.5 segundos
+        minLength: 3 // Número mínimo de caracteres para buscar
+    };
+
+    const buscarDescricao = async (catmatInput) => {
+        const catmatValue = catmatInput.value.trim();
+        const itemRow = catmatInput.closest('.item-row');
+        const descricaoInput = itemRow.querySelector('.descricao-input');
+
+        // Verifica se o valor é válido
+        if (!catmatValue || catmatValue.length < buscaControl.minLength) {
+            descricaoInput.value = '';
+            return;
+        }
+
+        // Cancela a requisição anterior se ainda estiver pendente
+        if (buscaControl.lastRequest) {
+            buscaControl.lastRequest.abort();
+        }
+
+        descricaoInput.value = 'Buscando...';
+        
+        try {
+            // Cria um AbortController para poder cancelar a requisição
+            const controller = new AbortController();
+            buscaControl.lastRequest = controller;
+            
+            const { data, error } = await supabase
+                .from('catalogo_materiais')
+                .select('descricao')
+                .eq('codigo_catmat', catmatValue)
+                .limit(1)
+                .abortSignal(controller.signal)
+                .single();
+
+            buscaControl.lastRequest = null;
+
+            if (error) {
+                if (error.code === 'PGRST116') { // Nenhum resultado encontrado
+                    descricaoInput.value = 'Código não encontrado';
+                } else if (error.name !== 'AbortError') {
+                    throw error;
+                }
+            } else if (data) {
+                descricaoInput.value = data.descricao;
+            }
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error('Erro ao buscar descrição:', error);
+                descricaoInput.value = 'Erro na busca';
+            }
+        }
+    };
+
+    // Evento de input com debounce
+    itensContainer.addEventListener('input', (event) => {
+        if (!event.target.classList.contains('catmat-input')) {
+            return;
+        }
+
+        const catmatInput = event.target;
+        const itemRow = catmatInput.closest('.item-row');
+        const descricaoInput = itemRow.querySelector('.descricao-input');
+
+        // Limpa o timeout anterior
+        clearTimeout(buscaControl.timeout);
+
+        // Limpa a descrição se o campo estiver vazio
+        if (catmatInput.value.trim() === '') {
+            descricaoInput.value = '';
+            return;
+        }
+
+        // Configura um novo timeout com delay maior
+        buscaControl.timeout = setTimeout(() => {
+            buscarDescricao(catmatInput);
+        }, buscaControl.delay);
+    });
+
+    // Limpeza ao sair da página
+    window.addEventListener('beforeunload', () => {
+        clearTimeout(buscaControl.timeout);
+        if (buscaControl.lastRequest) {
+            buscaControl.lastRequest.abort();
+        }
+    });
+});
+</script>
