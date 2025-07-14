@@ -42,3 +42,147 @@ Dados Recebidos: Array
 )
 
 ---
+Timestamp: 2025-07-02 22:53:49
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 7
+            [1] => 8
+            [2] => 9
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => entrega imediata
+    [justificativa_fornecedores] => não se aplica
+)
+
+---
+Timestamp: 2025-07-04 23:33:37
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 6
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => entrega imediata
+    [justificativa_fornecedores] => não se aplica
+)
+
+---
+Timestamp: 2025-07-05 13:04:47
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 17
+            [1] => 18
+            [2] => 19
+            [3] => 20
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Entrega imediata após emissão do Empenho
+    [justificativa_fornecedores] => Empresa da atividade pretendida
+)
+
+---
+Timestamp: 2025-07-05 14:34:49
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 29
+            [1] => 30
+            [2] => 31
+            [3] => 32
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 2
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Entrega é imediata após o empenho
+    [justificativa_fornecedores] => Fornecedor faz parte do ramo da cotação
+)
+
+---
+Timestamp: 2025-07-05 14:36:25
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 29
+            [1] => 30
+            [2] => 31
+            [3] => 32
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Entrega imediata após empenho
+    [justificativa_fornecedores] => Fornecedor faz parte do ramo da cotação
+)
+
+---
+Timestamp: 2025-07-05 15:33:19
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 35
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Entrega imediata após empenho
+    [justificativa_fornecedores] => Considerando se tratar de fornecedor do ramo
+)
+
+---
+Timestamp: 2025-07-06 14:45:21
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 40
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Entrega imediata após emissão do empenho
+    [justificativa_fornecedores] => Considerando se tratar de empresa do ramo
+)
+
+---

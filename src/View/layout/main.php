@@ -68,6 +68,17 @@ $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
                         <i class="bi bi-lightning-charge-fill me-2"></i> Cotação Rápida
                     </a>
                 </li>
+
+                 <li>
+                    <a href="/relatorio-gestao" class="nav-link <?= str_starts_with($currentPath, '/relatorio-gestao') ? 'active' : 'text-white' ?>">
+                        <i class="bi bi-bar-chart-fill me-2"></i> Relatório de Gestão <span class="badge bg-warning text-dark ms-2">Em Breve</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/relatorios" class="nav-link <?= str_starts_with($currentPath, '/relatorios') ? 'active' : 'text-white' ?>">
+                        <i class="bi bi-file-earmark-bar-graph-fill me-2"></i> Histórico de Relatórios
+                    </a>
+                </li>
                 
                 <?php if (isset($_SESSION['usuario_role']) && $_SESSION['usuario_role'] === 'admin'): ?>
                     <li>

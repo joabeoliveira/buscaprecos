@@ -160,4 +160,15 @@ $app->group('/usuarios', function ($group) {
 })->add($adminAuthMiddleware); // Aplica o "porteiro" de admin a todo o grupo
 // --- FIM DO GRUPO DE ROTAS PROTEGIDAS ---
 
+// NOVO: Rota para o Relatório de Gestão (em desenvolvimento)
+$app->get('/relatorio-gestao', function ($request, $response, $args) {
+    $tituloPagina = "Relatório de Gestão";
+    $paginaConteudo = __DIR__ . '/../src/View/em_desenvolvimento.php';
+    ob_start();
+    require __DIR__ . '/../src/View/layout/main.php';
+    $view = ob_get_clean();
+    $response->getBody()->write($view);
+    return $response;
+});
+
 $app->run();
