@@ -402,12 +402,8 @@ em 22/06
     18) adição de novos gráficos ok
     19) iplantação do autocomplete e busca da descrição no supabase
 
-
-    
  
-
-
-
+ 
 
 Ações futuras
 
@@ -419,4 +415,6 @@ para configurações:
 1) colocar a opção de deixar a Região pre definida para o Estado do órgão
 2) opção de paleta de cores
 3) 
+
+Subindo a aplicação no easypanel:
 

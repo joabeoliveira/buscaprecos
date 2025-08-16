@@ -186,3 +186,42 @@ Dados Recebidos: Array
 )
 
 ---
+Timestamp: 2025-07-14 21:44:20
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 41
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Entrega imediata após emissão de empenho
+    [justificativa_fornecedores] => Fornecedor do ramo da atividade
+)
+
+---
+Timestamp: 2025-08-12 12:34:59
+Dados Recebidos: Array
+(
+    [item_ids] => Array
+        (
+            [0] => 42
+        )
+
+    [fornecedor_ids] => Array
+        (
+            [0] => 1
+            [1] => 2
+        )
+
+    [prazo_dias] => 5
+    [condicoes_contratuais] => Prazo de entre em 15 dias após emissão da nota de empenho
+    [justificativa_fornecedores] => Fornecedores do ramo da pesquisa
+)
+
+---
