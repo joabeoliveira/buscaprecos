@@ -25,9 +25,7 @@ services:
   # Servidor Web Nginx
   webserver:
     image: nginx:alpine
-    ports: # <-- LINHA ADICIONADA
-      - "80:80" # <-- LINHA ADICIONADA: Mapeia a porta 80 da VPS para a porta 80 do contêiner
-      - "443:443" # <-- LINHA ADICIONADA: Opcional, mas essencial para HTTPS no futuro
+    
     volumes:
       # Mapeia todo o projeto para o Nginx também
       - ./:/var/www/app
