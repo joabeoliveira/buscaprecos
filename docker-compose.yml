@@ -46,7 +46,7 @@ services:
     # --- ADICIONADO: INSTRUÇÕES PARA O TRAEFIK ---
     labels:
       - "traefik.enable=true" # Habilita o Traefik para este contêiner
-      - "traefik.http.routers.buscaprecos.rule=Host(`buscaprecos.seu-dominio.com`)" # <-- TROQUE PELO SEU DOMÍNIO AQUI
+      - "traefik.http.routers.buscaprecos.rule=Host(`app.algorise.com.br`)" # <-- TROQUE PELO SEU DOMÍNIO AQUI
       - "traefik.http.routers.buscaprecos.entrypoints=websecure" # Usa a entrada segura (HTTPS)
       - "traefik.http.routers.buscaprecos.tls.certresolver=letsencrypt" # Pede um certificado SSL
       - "traefik.http.services.buscaprecos.loadbalancer.server.port=80" # Redireciona para a porta 80 interna do Nginx
