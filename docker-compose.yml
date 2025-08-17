@@ -2,7 +2,11 @@
 services:
   # Serviço PHP
   app:
-    build: ./docker/php
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+
+    #build: ./docker/php
     volumes:
     - /root/buscaprecos:/var/www/app
     # - ./:/var/www/app
