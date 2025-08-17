@@ -21,7 +21,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copia os arquivos do Composer da raiz do projeto para o diretório de trabalho
 # A instrução 'COPY . .' no final copiará o resto dos arquivos, incluindo estes.
 # Fazer isso em duas etapas permite que o Docker use o cache de forma mais eficiente.
-COPY composer.json composer.lock ./
+COPY ../composer.json ../composer.lock ./
 
 # Instala as dependências do Composer, ignorando as de desenvolvimento para uma imagem menor
 RUN composer install --no-dev --optimize-autoloader
