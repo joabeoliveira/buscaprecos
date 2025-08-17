@@ -26,8 +26,7 @@ services:
   webserver:
     image: nginx:alpine
 
-    ports:
-      - "8000:80" # <-- Mude a porta pública para 8000
+  
     
     volumes:
       # Mapeia todo o projeto para o Nginx também
