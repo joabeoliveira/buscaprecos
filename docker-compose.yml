@@ -1,4 +1,4 @@
-# docker-compose.yml (VERSÃO FINAL COM NAMED VOLUME)
+# docker-compose.yml (VERSÃO CORRIGIDA PARA PRODUÇÃO)
 services:
   # Serviço PHP
   app:
@@ -6,7 +6,7 @@ services:
     volumes:
       # Mapeia todo o projeto para /var/www/app dentro do contêiner
       - ./:/var/www/app
-    working_dir: /var/w ww/app
+    working_dir: /var/www/app
     depends_on:
       - db
 
@@ -25,6 +25,9 @@ services:
   # Servidor Web Nginx
   webserver:
     image: nginx:alpine
+    ports: # <-- LINHA ADICIONADA
+      - "80:80" # <-- LINHA ADICIONADA: Mapeia a porta 80 da VPS para a porta 80 do contêiner
+      - "443:443" # <-- LINHA ADICIONADA: Opcional, mas essencial para HTTPS no futuro
     volumes:
       # Mapeia todo o projeto para o Nginx também
       - ./:/var/www/app
