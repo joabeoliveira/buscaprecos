@@ -17,10 +17,17 @@ RUN apk add --no-cache \
 # Passo 2: Agora, com as bibliotecas no lugar, instalar as extensões do PHP.
 RUN docker-php-ext-install pdo pdo_mysql curl gd zip
 
-# --- FIM DA CORREÇÃO ---
-
 # Instala o Composer (gerenciador de dependências do PHP) globalmente
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Adicione esta linha para garantir que o diretório de trabalho esteja correto
+WORKDIR /var/www/app
+
+# Adicione estas duas linhas para copiar os arquivos do composer e instalar as dependências
+COPY composer.json composer.lock ./
+
+# Instala as dependências do Composer, ignorando as de desenvolvimento para uma imagem menor
+RUN composer install --no-dev --optimize-autoloader
 
 RUN apk add --no-cache $PHPIZE_DEPS && pecl install redis && docker-php-ext-enable redis
 
