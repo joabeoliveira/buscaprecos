@@ -26,6 +26,9 @@ WORKDIR /var/www/app
 # Adicione estas duas linhas para copiar os arquivos do composer e instalar as dependências
 COPY composer.json composer.lock ./
 
+# Copia os arquivos do Composer da pasta superior para o diretório de trabalho
+COPY ../composer.json ../composer.lock ./
+
 # Instala as dependências do Composer, ignorando as de desenvolvimento para uma imagem menor
 RUN composer install --no-dev --optimize-autoloader
 
