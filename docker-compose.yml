@@ -13,6 +13,9 @@ services:
   # Banco de Dados MySQL
   db:
     image: mysql:8.0
+
+    
+    
     volumes:
       # Alterado para usar um "named volume" gerenciado pelo Docker
       - db_data:/var/lib/mysql
